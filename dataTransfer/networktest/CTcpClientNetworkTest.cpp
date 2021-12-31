@@ -1,0 +1,206 @@
+#include "../stdafx.h"
+
+#define CTcpClientNetworkTestPrefix datatransfer::networktest::CNetworkTest::CTcpClientNetworkTest
+
+//==============================================================================
+CTcpClientNetworkTestPrefix::CTcpClientNetworkTest(
+	CNetworkTest* const pNetworkTest,
+	const std::string strIp,
+	const WORD wPort,
+	const std::shared_ptr<wname::io::iocp::CIocp>& pIocp)
+	: CTcpClient(strIp, wPort, pIocp),
+	_pNetworkTest(pNetworkTest)
+{
+	try
+	{
+		if (_pNetworkTest == nullptr)
+			throw std::invalid_argument("_pNetworkTest == nullptr");
+
+		/** выдел€ем буферы под операции */
+		if (_pNetworkTest->_sInfoClient.bIsRecv)
+			_bufferRecv.resize(_pNetworkTest->_sInfoClient.dwSizeBuffer);
+		if (_pNetworkTest->_sInfoClient.bIsSend)
+			_bufferSend.resize(_pNetworkTest->_sInfoClient.dwSizeBuffer);
+	}
+	catch (const std::exception& ex)
+	{
+		_pIocp->log(wname::logger::EMessageType::critical, ex);
+		throw;
+	}
+	
+	/** пробуем подключитьс€ */
+	connect();
+}
+//==============================================================================
+void CTcpClientNetworkTestPrefix::getStatistic(
+	SStatisticClient& sStatisticClient,
+	const DWORD dwDifTime) noexcept
+{
+	if (sStatisticClient.tickCount == 0)
+	{
+		sStatisticClient.tickCount = GetTickCount64();
+	}
+
+	UINT64 tickCountDif = GetTickCount64() - sStatisticClient.tickCount;
+
+	/** рановато считать */
+	if (tickCountDif < dwDifTime)
+		return;
+
+	tickCountDif /= dwDifTime;
+
+	/** копируем информацию */
+	memcpy(&sStatisticClient.info, &_pNetworkTest->_sInfoClient, 
+		sizeof(_pNetworkTest->_sInfoClient));
+
+	/** заполн€ем статистику на отправку */
+	sStatisticClient.nSendData = _nCountWriteByte - sStatisticClient.nAllSendData;
+	sStatisticClient.nAllSendData += sStatisticClient.nSendData;
+	sStatisticClient.nAvgSendData = sStatisticClient.nAllSendData / tickCountDif;
+
+	/** заполн€ем статистику на прием */
+	sStatisticClient.nRecvData = _nCountReadByte - sStatisticClient.nAllRecvData;
+	sStatisticClient.nAllRecvData += sStatisticClient.nRecvData;
+	sStatisticClient.nAvgRecvData = sStatisticClient.nAllRecvData / tickCountDif;
+}
+//==============================================================================
+void CTcpClientNetworkTestPrefix::clientAsyncRecvComplitionHandler(
+	const PBYTE bufferRecv,
+	const DWORD dwReturnSize,
+	const std::error_code ec) noexcept
+{
+	#pragma warning(disable: 26493)
+	UNREFERENCED_PARAMETER(bufferRecv);
+	UNREFERENCED_PARAMETER(dwReturnSize);
+
+	if (ec)
+	{
+		/** ошибка приема */
+		return;
+	}
+
+	try
+	{
+		if (_pNetworkTest->_sInfoClient.bIsRecv)
+		{
+			const auto ecRecv = startAsyncRecv(
+				_bufferRecv.data(), (DWORD)_bufferRecv.size(), MSG_WAITALL);
+			if (ecRecv)
+			{
+				/** ошибка старта приема */
+				return;
+			}
+		}
+	}
+	catch (const std::exception& ex)
+	{
+		_pIocp->log(wname::logger::EMessageType::critical, ex);
+	}
+}
+//==============================================================================
+void CTcpClientNetworkTestPrefix::clientAsyncSendComplitionHandler(
+	const PBYTE bufferSend,
+	const DWORD dwReturnSize,
+	const std::error_code ec) noexcept
+{
+	#pragma warning(disable: 26493)
+	UNREFERENCED_PARAMETER(bufferSend);
+	UNREFERENCED_PARAMETER(dwReturnSize);
+
+	if (ec)
+	{
+		/** ошибка отправки */
+		return;
+	}
+
+	try
+	{
+		if (_pNetworkTest->_sInfoClient.bIsSend)
+		{
+			const auto ecSend = startAsyncSend(
+				_bufferSend.data(), (DWORD)_bufferSend.size());
+			if (ecSend)
+			{
+				/** ошибка старта отправки */
+				return;
+			}
+		}
+	}
+	catch (const std::exception& ex)
+	{
+		_pIocp->log(wname::logger::EMessageType::critical, ex);
+	}
+}
+//==============================================================================
+void CTcpClientNetworkTestPrefix::clientConnected(
+	const std::error_code ec) noexcept
+{
+	#pragma warning(disable: 26493)
+
+	if (ec)
+	{
+		/** валим */ 
+		return;
+	}
+
+	try
+	{
+		/** отправл€ем информацию о сети */
+		DWORD dwReturnedByte = 0;
+		auto ecSend = startSend(
+			(PBYTE)&_pNetworkTest->_sInfoClient, sizeof(_pNetworkTest->_sInfoClient), &dwReturnedByte);
+		if (ecSend)
+		{
+			/** ошибка старта отправки */
+			return;
+		}
+
+		if (_pNetworkTest->_sInfoClient.bIsRecv)
+		{
+			const auto ecRecv =	startAsyncRecv(
+				_bufferRecv.data(), (DWORD)_bufferRecv.size(), MSG_WAITALL);
+			if (ecRecv)
+			{
+				/** ошибка старта приема */
+				return;
+			}
+		}
+
+		if (_pNetworkTest->_sInfoClient.bIsSend)
+		{
+			ecSend = startAsyncSend(
+				_bufferSend.data(), (DWORD)_bufferSend.size());
+			if (ecSend)
+			{
+				/** ошибка старта отправки */
+				return;
+			}
+		}
+
+		/** подключаемс€ к управл€ющему объекту */
+		_pNetworkTest->connectedClient(this);
+	}
+	catch (const std::exception& ex)
+	{
+		_pIocp->log(wname::logger::EMessageType::critical, ex);
+	}
+}
+//==============================================================================
+void CTcpClientNetworkTestPrefix::clientDisconnected(
+	const std::error_code ec) noexcept
+{
+	UNREFERENCED_PARAMETER(ec);
+
+	/** отключаемс€ от управл€ющиего объекта */
+	_pNetworkTest->disconnectedClient(this);
+}
+//==============================================================================
+CTcpClientNetworkTestPrefix::~CTcpClientNetworkTest()
+{
+	/** отключаем */
+	disconnect();
+
+	/** ждем завершени€ всего */
+	release();
+}
+//==============================================================================

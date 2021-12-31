@@ -301,10 +301,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="dataTransfer.h" />
+    <ClInclude Include="networktest\CNetworkTest.h" />
+    <ClInclude Include="networktest\CTcpClientNetworkTest.h" />
+    <ClInclude Include="networktest\CTcpConnectedClientNetworkTest.h" />
+    <ClInclude Include="networktest\CTcpServerNetworkTest.h" />
+    <ClInclude Include="networktest\INetworkTestStatistic.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="test.cpp" />
+    <ClCompile Include="networktest\CNetworkTest.cpp" />
+    <ClCompile Include="networktest\CTcpClientNetworkTest.cpp" />
+    <ClCompile Include="networktest\CTcpConnectedClientNetworkTest.cpp" />
+    <ClCompile Include="networktest\CTcpServerNetworkTest.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\wname\wname\wname.vcxproj">
+      <Project>{1ffb8d86-7479-4457-be6c-7f21a9fe9429}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

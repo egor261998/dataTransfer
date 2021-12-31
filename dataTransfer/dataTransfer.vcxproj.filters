@@ -2,8 +2,40 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="dataTransfer.h" />
+    <ClInclude Include="networktest\CTcpServerNetworkTest.h">
+      <Filter>networktest</Filter>
+    </ClInclude>
+    <ClInclude Include="networktest\CTcpClientNetworkTest.h">
+      <Filter>networktest</Filter>
+    </ClInclude>
+    <ClInclude Include="networktest\CTcpConnectedClientNetworkTest.h">
+      <Filter>networktest</Filter>
+    </ClInclude>
+    <ClInclude Include="networktest\CNetworkTest.h">
+      <Filter>networktest</Filter>
+    </ClInclude>
+    <ClInclude Include="networktest\INetworkTestStatistic.h">
+      <Filter>networktest</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="test.cpp" />
+    <Filter Include="networktest">
+      <UniqueIdentifier>{8066b9d7-0228-429c-a796-286999ea9a07}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="networktest\CTcpServerNetworkTest.cpp">
+      <Filter>networktest</Filter>
+    </ClCompile>
+    <ClCompile Include="networktest\CTcpClientNetworkTest.cpp">
+      <Filter>networktest</Filter>
+    </ClCompile>
+    <ClCompile Include="networktest\CTcpConnectedClientNetworkTest.cpp">
+      <Filter>networktest</Filter>
+    </ClCompile>
+    <ClCompile Include="networktest\CNetworkTest.cpp">
+      <Filter>networktest</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
