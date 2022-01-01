@@ -123,6 +123,7 @@ void CTcpConnectedClientNetworkTestPrefix::clientConnected(
 	if (ec)
 	{
 		/** валим */
+		dynamic_cast<CTcpServerNetworkTest*>(_pParent)->_pNetworkTest->connectedClient(this, ec);
 		return;
 	}
 
@@ -131,6 +132,8 @@ void CTcpConnectedClientNetworkTestPrefix::clientConnected(
 		if (!_socket.setKeepAlive(true))
 		{
 			/** ошибка установки значени€ */
+			dynamic_cast<CTcpServerNetworkTest*>(_pParent)->_pNetworkTest->connectedClient(this, 
+				std::error_code(WSAGetLastError(), std::system_category()));
 			return;
 		}
 
@@ -142,6 +145,7 @@ void CTcpConnectedClientNetworkTestPrefix::clientConnected(
 		if (ecRecv)
 		{
 			/** ошибка старта приема */
+			dynamic_cast<CTcpServerNetworkTest*>(_pParent)->_pNetworkTest->connectedClient(this, ecRecv);
 			return;
 		}
 
@@ -179,6 +183,7 @@ void CTcpConnectedClientNetworkTestPrefix::clientConnected(
 				if (ecRecv)
 				{
 					/** ошибка старта приема */
+					dynamic_cast<CTcpServerNetworkTest*>(_pParent)->_pNetworkTest->connectedClient(this, ecRecv);
 					return;
 				}
 			}
@@ -193,6 +198,7 @@ void CTcpConnectedClientNetworkTestPrefix::clientConnected(
 				if (ecSend)
 				{
 					/** ошибка старта отправки */
+					dynamic_cast<CTcpServerNetworkTest*>(_pParent)->_pNetworkTest->connectedClient(this, ecSend);
 					return;
 				}
 			}
@@ -204,16 +210,16 @@ void CTcpConnectedClientNetworkTestPrefix::clientConnected(
 	catch (const std::exception& ex)
 	{
 		_pIocp->log(wname::logger::EMessageType::critical, ex);
+		dynamic_cast<CTcpServerNetworkTest*>(_pParent)->_pNetworkTest->connectedClient(this,
+			std::error_code(ERROR_FUNCTION_FAILED, std::system_category()));
 	}
 }
 //==============================================================================
 void CTcpConnectedClientNetworkTestPrefix::clientDisconnected(
 	const std::error_code ec) noexcept
 {
-	UNREFERENCED_PARAMETER(ec);
-
 	/** отключаемс€ от управл€ющиего объекта */
-	dynamic_cast<CTcpServerNetworkTest*>(_pParent)->_pNetworkTest->disconnectedClient(this);
+	dynamic_cast<CTcpServerNetworkTest*>(_pParent)->_pNetworkTest->disconnectedClient(this, ec);
 }
 //==============================================================================
 CTcpConnectedClientNetworkTestPrefix::~CTcpConnectedClientNetworkTest()

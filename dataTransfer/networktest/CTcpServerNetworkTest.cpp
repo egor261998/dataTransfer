@@ -11,7 +11,10 @@ CTcpServerNetworkTestPrefix::CTcpServerNetworkTest(
 	: CTcpServer(strIp, wPort, pIocp),
 	_pNetworkTest(pNetworkTest)
 {
-	connectServer();
+	if (!pNetworkTest->startOperation())
+	{
+		throw std::logic_error("pNetworkTest is not start");
+	}
 }
 //==============================================================================
 std::unique_ptr<CTcpServerNetworkTestPrefix::CTcpConnectedClient> CTcpServerNetworkTestPrefix::createClient()
@@ -31,13 +34,19 @@ std::unique_ptr<CTcpServerNetworkTestPrefix::CTcpConnectedClient> CTcpServerNetw
 void CTcpServerNetworkTestPrefix::serverConnected(
 	const std::error_code ec) noexcept
 {
-	UNREFERENCED_PARAMETER(ec);
+	if (ec)
+	{
+		_pIocp->log(wname::logger::EMessageType::warning, L"serverConnected failed", ec);
+	}	
 }
 //==============================================================================
 void CTcpServerNetworkTestPrefix::serverDisconnected(
 	const std::error_code ec) noexcept
 {
-	UNREFERENCED_PARAMETER(ec);
+	if (ec)
+	{
+		_pIocp->log(wname::logger::EMessageType::warning, L"serverDisconnected failed", ec);
+	}
 }
 //==============================================================================
 CTcpServerNetworkTestPrefix::~CTcpServerNetworkTest()
@@ -47,5 +56,7 @@ CTcpServerNetworkTestPrefix::~CTcpServerNetworkTest()
 
 	/** ждем завершения всего */
 	release();
+
+	_pNetworkTest->endOperation();
 }
 //==============================================================================

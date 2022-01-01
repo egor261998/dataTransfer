@@ -28,6 +28,7 @@ namespace networktest
 		#pragma pack()
 	//==========================================================================
 		/** статистика клиента */
+		#pragma pack(1)
 		typedef struct _SStatisticClient
 		{	
 			/** начальная точка отсчета */
@@ -40,9 +41,25 @@ namespace networktest
 			UINT64 nAllRecvData;
 			UINT64 nAllSendData;
 
+			/** переподключение */
+			DWORD dwRecconect;
+
 			/** информация о сети клиента */
 			SInfoClient info;
 		}SStatisticClient, * PSStatisticClient;
+		#pragma pack()
+	//==========================================================================
+		/** статистика общая */
+		#pragma pack(1)
+		typedef struct _SStatistic
+		{
+			/** статистика переданных данных */
+			UINT64 nAvgRecvData;
+			UINT64 nAvgSendData;
+			UINT64 nAllRecvData;
+			UINT64 nAllSendData;
+		}SStatistic, * PSStatistic;
+		#pragma pack()
 	//==========================================================================
 	#pragma endregion
 
@@ -86,6 +103,21 @@ namespace networktest
 			const std::shared_ptr<wname::io::iocp::CIocp>& pIocp);
 	//==========================================================================
 		/**
+		* начать тестирование сети.
+		* @param statistic - статистика.
+		* @param dwTime - время тестирования в милисекундах.
+		* @return - результата работы.
+		*/
+		DATATRANSFER std::error_code start(
+			SStatistic& statistic,
+			const DWORD dwTime = INFINITE);
+	//==========================================================================
+		/**
+		* закончить работу и дождаться всех операций.
+		*/
+		DATATRANSFER void release() noexcept;
+	//==========================================================================
+		/**
 		* деструктор тестирования сети.
 		*/
 		DATATRANSFER ~CNetworkTest();
@@ -103,9 +135,11 @@ namespace networktest
 		/**
 		* виртуальное уведомление о подключение клиента.
 		* @param pClient - клиент.
+		* @param ec - ошибка подключения.
 		*/
 		DATATRANSFER virtual void connectedClientHandler(
-			INetworkTestStatistic* const pClient) noexcept;
+			INetworkTestStatistic* const pClient,
+			const std::error_code ec) noexcept;
 	//==========================================================================
 		/**
 		* виртуальное уведомление об тике сбора статистики.
@@ -117,23 +151,29 @@ namespace networktest
 		/**
 		* виртуальное уведомление об отключении клиента.
 		* @param pClient - клиент.
+		* @param ec - ошибка отключения.
 		*/
 		DATATRANSFER virtual void disconnectedClientHandler(
-			INetworkTestStatistic* const pClient) noexcept;
+			INetworkTestStatistic* const pClient,
+			const std::error_code ec) noexcept;
 	//==========================================================================
 		/**
 		* подключение клиента.
 		* @param pClient - клиент.
+		* @param ec - ошибка подключения.
 		*/
 		DATATRANSFER void connectedClient(
-			INetworkTestStatistic* const pClient) noexcept;
+			INetworkTestStatistic* const pClient,
+			const std::error_code ec = std::error_code()) noexcept;
 	//==========================================================================
 		/**
 		* отключение клиента.
 		* @param pClient - клиент.
+		* @param ec - ошибка отключения.
 		*/
 		DATATRANSFER void disconnectedClient(
-			INetworkTestStatistic* const pClient) noexcept;
+			INetworkTestStatistic* const pClient,
+			const std::error_code ec = std::error_code()) noexcept;
 	//==========================================================================
 		/**
 		* обновление статистики.
@@ -160,6 +200,7 @@ namespace networktest
 		std::future<void> _threadUpdate;
 		wname::handle::CEvent _evThreadUpdate;
 		std::unordered_map<INetworkTestStatistic*, SStatisticClient> _statisticClients;
+		SStatistic _statisticAll;
 	//==========================================================================
 	#pragma endregion
 	};

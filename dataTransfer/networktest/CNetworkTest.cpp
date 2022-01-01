@@ -34,15 +34,15 @@ CNetworkTestPrefix::CNetworkTest(
 
 		memcpy(&_sInfoClient, &sInfoClient, sizeof(SInfoClient));
 
+		initialize();
+		_evThreadUpdate.initialize();
+		_threadUpdate = std::async(std::launch::async, &CNetworkTest::threadUpdate, this);
+
 		for (DWORD i = 0; i < dwCountClient; i++)
 		{
 			_pTcpClientNetworkTest.push_back(std::make_unique<CTcpClientNetworkTest>(
 				this, strIp, wPort, pIocp));
-		}
-
-		initialize();
-		_evThreadUpdate.initialize();
-		_threadUpdate = std::async(std::launch::async, &CNetworkTest::threadUpdate, this);
+		}		
 	}
 	catch (const std::exception& ex)
 	{
@@ -63,12 +63,12 @@ CNetworkTestPrefix::CNetworkTest(
 	{
 		_pIocp = pIocp;
 
-		_pTcpServerNetworkTest = std::make_unique<CTcpServerNetworkTest>(
-			this, strIp, wPort, pIocp);
-
 		initialize();
 		_evThreadUpdate.initialize();
 		_threadUpdate = std::async(std::launch::async, &CNetworkTest::threadUpdate, this);
+
+		_pTcpServerNetworkTest = std::make_unique<CTcpServerNetworkTest>(
+			this, strIp, wPort, pIocp);		
 	}
 	catch (const std::exception& ex)
 	{
@@ -77,23 +77,109 @@ CNetworkTestPrefix::CNetworkTest(
 	}
 }
 //==============================================================================
+std::error_code CNetworkTestPrefix::start(
+	CNetworkTestPrefix::SStatistic& statistic,
+	const DWORD dwTime)
+{
+	{
+		wname::cs::CCriticalSectionScoped lock(_csCounter);
+
+		if (_pTcpServerNetworkTest != nullptr)
+		{
+			const auto ec = _pTcpServerNetworkTest->connectServer();
+			if (ec)
+			{
+				_pTcpServerNetworkTest->disconnectServer(ec);
+				return ec;
+			}		
+		}
+
+		if (!_pTcpClientNetworkTest.empty())
+		{
+			for (const auto& it : _pTcpClientNetworkTest)
+			{
+				const auto ec = it->connect();
+				if (ec)
+				{
+					/** ошибка подключения */
+					for (const auto& itDisconnect : _pTcpClientNetworkTest)
+					{
+						itDisconnect->disconnect(ec);
+					}
+					return ec;
+				}
+			}
+		}
+	}
+	
+	Sleep(dwTime);	
+	{
+		wname::cs::CCriticalSectionScoped lock(_csCounter);
+
+		if (_pTcpServerNetworkTest != nullptr)
+		{
+			_pTcpServerNetworkTest->disconnectServer();
+		}
+
+		if (!_pTcpClientNetworkTest.empty())
+		{
+			for (const auto& itDisconnect : _pTcpClientNetworkTest)
+			{
+				itDisconnect->disconnect();
+			}
+		}
+
+		memcpy(&statistic, &_statisticAll, sizeof(statistic));
+	}
+
+	return std::error_code();
+}
+//==============================================================================
+void CNetworkTestPrefix::release() noexcept
+{
+	/** клиенты */
+	std::list<std::unique_ptr<CTcpClientNetworkTest>> pTcpClientNetworkTest;
+	/** сервер */
+	std::unique_ptr<CTcpServerNetworkTest> pTcpServerNetworkTest;
+
+	{
+		wname::cs::CCriticalSectionScoped lock(_csCounter);
+
+		/** перемещаем все в другие контейнеры чтобы потом высвободить
+			без участия критической секции */
+		pTcpClientNetworkTest = std::move(_pTcpClientNetworkTest);
+		pTcpServerNetworkTest = std::move(_pTcpServerNetworkTest);
+	}
+
+	pTcpClientNetworkTest.clear();
+	pTcpServerNetworkTest.reset();
+
+	_evThreadUpdate.notify();
+
+	__super::release();
+}
+//==============================================================================
 void CNetworkTestPrefix::connectedClient(
-	INetworkTestStatistic* const pClient) noexcept
+	INetworkTestStatistic* const pClient,
+	const std::error_code ec) noexcept
 {
 	wname::cs::CCriticalSectionScoped lock(_csCounter);
 
 	try
 	{
-		if (_statisticClients.find(pClient) == _statisticClients.end())
+		if (!ec)
 		{
-			_statisticClients[pClient] = SStatisticClient() = { 0 };
-		}
-		else
-		{
-			throw std::logic_error("pClient already added");
+			if (_statisticClients.find(pClient) == _statisticClients.end())
+			{
+				_statisticClients[pClient] = SStatisticClient() = { 0 };
+			}
+			else
+			{
+				throw std::logic_error("pClient already added");
+			}
 		}
 
-		connectedClientHandler(pClient);
+		connectedClientHandler(pClient, ec);
 	}
 	catch (const std::exception& ex)
 	{
@@ -105,18 +191,21 @@ void CNetworkTestPrefix::connectedClient(
 }
 //==============================================================================
 void CNetworkTestPrefix::disconnectedClient(
-	INetworkTestStatistic* const pClient) noexcept
+	INetworkTestStatistic* const pClient,
+	const std::error_code ec) noexcept
 {
 	wname::cs::CCriticalSectionScoped lock(_csCounter);
 
 	_statisticClients.erase(pClient);
-	disconnectedClientHandler(pClient);
+	disconnectedClientHandler(pClient, ec);
 }
 //==============================================================================
 void CNetworkTestPrefix::connectedClientHandler(
-	INetworkTestStatistic* const pClient) noexcept
+	INetworkTestStatistic* const pClient,
+	const std::error_code ec) noexcept
 {
 	UNREFERENCED_PARAMETER(pClient);
+	UNREFERENCED_PARAMETER(ec);
 }
 //==============================================================================
 void CNetworkTestPrefix::statisticHandler(
@@ -126,9 +215,11 @@ void CNetworkTestPrefix::statisticHandler(
 }
 //==============================================================================
 void CNetworkTestPrefix::disconnectedClientHandler(
-	INetworkTestStatistic* const pClient) noexcept
+	INetworkTestStatistic* const pClient,
+	const std::error_code ec) noexcept
 {
 	UNREFERENCED_PARAMETER(pClient);
+	UNREFERENCED_PARAMETER(ec);
 }
 //==============================================================================
 void CNetworkTestPrefix::threadUpdate() noexcept
@@ -152,14 +243,19 @@ void CNetworkTestPrefix::threadUpdate() noexcept
 			for (auto& [k, v] : _statisticClients)
 			{
 				assert(k != nullptr);
-				/**  */
+
+				/** получение статистики */
 				k->getStatistic(v, dwDifTime);
+				_statisticAll.nAvgRecvData += v.nAvgRecvData;
+				_statisticAll.nAvgSendData += v.nAvgSendData;
+				_statisticAll.nAllRecvData += v.nAllRecvData;
+				_statisticAll.nAllSendData += v.nAllSendData;
 			}
 
 			if (!_statisticClients.empty())
 			{
 				statisticHandler(_statisticClients);
-			}
+			}		
 		}
 		catch (const std::exception& ex)
 		{
@@ -170,25 +266,6 @@ void CNetworkTestPrefix::threadUpdate() noexcept
 //==============================================================================
 CNetworkTestPrefix::~CNetworkTest()
 {
-	/** клиенты */
-	std::list<std::unique_ptr<CTcpClientNetworkTest>> pTcpClientNetworkTest;
-	/** сервер */
-	std::unique_ptr<CTcpServerNetworkTest> pTcpServerNetworkTest;
-
-	{
-		wname::cs::CCriticalSectionScoped lock(_csCounter);
-
-		/** перемещаем все в другие контейнеры чтобы потом высвободить 
-			без участия критической секции */
-		pTcpClientNetworkTest = std::move(_pTcpClientNetworkTest);
-		pTcpServerNetworkTest = std::move(_pTcpServerNetworkTest);	
-	}
-
-	pTcpClientNetworkTest.clear();
-	pTcpServerNetworkTest.reset();
-	
-	_evThreadUpdate.notify();
-
 	/** ждем всего */
 	release();
 }

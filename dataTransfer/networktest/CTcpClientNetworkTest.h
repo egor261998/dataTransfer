@@ -5,7 +5,7 @@ namespace networktest
 {
 	/** TCP клиент для тестирования сети */
 	class CNetworkTest::CTcpClientNetworkTest : 
-		protected wname::network::CTcpClient, public INetworkTestStatistic
+		public wname::network::CTcpClient, public INetworkTestStatistic
 	{
 	#pragma region Public_Method
 	public:
@@ -101,6 +101,9 @@ namespace networktest
 		std::list<std::vector<BYTE>> _listBufferRecv;
 		/** буфер отправки данных */
 		std::list<std::vector<BYTE>> _listBufferSend;
+
+		/** количество переподключений */
+		std::atomic_uint _dwRecconect = 0;
 	//==========================================================================
 	#pragma endregion
 	};

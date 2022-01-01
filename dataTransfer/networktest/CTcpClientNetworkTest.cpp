@@ -34,15 +34,17 @@ CTcpClientNetworkTestPrefix::CTcpClientNetworkTest(
 					std::vector<BYTE>(_pNetworkTest->_sInfoClient.dwSizeBuffer));
 			}
 		}
+
+		if (!pNetworkTest->startOperation())
+		{
+			throw std::logic_error("pNetworkTest is not start");
+		}
 	}
 	catch (const std::exception& ex)
 	{
 		_pIocp->log(wname::logger::EMessageType::critical, ex);
 		throw;
 	}
-	
-	/** пробуем подключитьс€ */
-	connect();
 }
 //==============================================================================
 void CTcpClientNetworkTestPrefix::getStatistic(
@@ -75,6 +77,9 @@ void CTcpClientNetworkTestPrefix::getStatistic(
 	sStatisticClient.nRecvData = _nCountReadByte - sStatisticClient.nAllRecvData;
 	sStatisticClient.nAllRecvData += sStatisticClient.nRecvData;
 	sStatisticClient.nAvgRecvData = sStatisticClient.nAllRecvData / tickCountDif;
+
+	/** были ли переподключени€ */
+	sStatisticClient.dwRecconect = _dwRecconect;
 }
 //==============================================================================
 const wname::network::socket::CSocketAddress& CTcpClientNetworkTestPrefix::getAddress() noexcept
@@ -158,6 +163,7 @@ void CTcpClientNetworkTestPrefix::clientConnected(
 	if (ec)
 	{
 		/** валим */ 
+		_pNetworkTest->connectedClient(this, ec);
 		return;
 	}
 
@@ -166,6 +172,8 @@ void CTcpClientNetworkTestPrefix::clientConnected(
 		if (!_socket.setKeepAlive(true))
 		{
 			/** ошибка установки значени€ */
+			_pNetworkTest->connectedClient(this, 
+				std::error_code(WSAGetLastError(), std::system_category()));
 			return;
 		}
 
@@ -178,6 +186,7 @@ void CTcpClientNetworkTestPrefix::clientConnected(
 		if (ecSend)
 		{
 			/** ошибка старта отправки */
+			_pNetworkTest->connectedClient(this, ecSend);
 			return;
 		}
 
@@ -190,6 +199,7 @@ void CTcpClientNetworkTestPrefix::clientConnected(
 				if (ecRecv)
 				{
 					/** ошибка старта приема */
+					_pNetworkTest->connectedClient(this, ecRecv);
 					return;
 				}
 			}		
@@ -204,6 +214,7 @@ void CTcpClientNetworkTestPrefix::clientConnected(
 				if (ecSend)
 				{
 					/** ошибка старта отправки */
+					_pNetworkTest->connectedClient(this, ec);
 					return;
 				}
 			}	
@@ -215,16 +226,36 @@ void CTcpClientNetworkTestPrefix::clientConnected(
 	catch (const std::exception& ex)
 	{
 		_pIocp->log(wname::logger::EMessageType::critical, ex);
+		_pNetworkTest->connectedClient(this, 
+			std::error_code(ERROR_FUNCTION_FAILED, std::system_category()));
 	}
 }
 //==============================================================================
 void CTcpClientNetworkTestPrefix::clientDisconnected(
 	const std::error_code ec) noexcept
 {
-	UNREFERENCED_PARAMETER(ec);
-
 	/** отключаемс€ от управл€ющиего объекта */
-	_pNetworkTest->disconnectedClient(this);
+	_pNetworkTest->disconnectedClient(this, ec);
+
+	/** пробуем подключитьс€ снова */
+	while (ec)
+	{
+		wname::misc::CCounterScoped counter(*this);
+		if (!counter.isStartOperation())
+		{
+			/** выключение */
+			return;
+		}
+
+		/** переподключение */
+		_dwRecconect++;
+		const auto ecConnect = connect();
+		if (!ecConnect)
+		{
+			/** подключились */
+			break;
+		}
+	}
 }
 //==============================================================================
 CTcpClientNetworkTestPrefix::~CTcpClientNetworkTest()
@@ -234,5 +265,7 @@ CTcpClientNetworkTestPrefix::~CTcpClientNetworkTest()
 
 	/** ждем завершени€ всего */
 	release();
+
+	_pNetworkTest->endOperation();
 }
 //==============================================================================
