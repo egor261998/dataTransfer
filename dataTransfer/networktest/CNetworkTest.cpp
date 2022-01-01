@@ -20,8 +20,14 @@ CNetworkTestPrefix::CNetworkTest(
 		if (!sInfoClient.bIsRecv && !sInfoClient.bIsSend)
 			throw std::invalid_argument("!sInfoClient.bIsRecv && !sInfoClient.bIsSend");
 
+		if (sInfoClient.dwBandWidth == 0)
+			throw std::invalid_argument("sInfoClient.dwBandwidth == 0");
+
 		if (sInfoClient.dwSizeBuffer == 0)
 			throw std::invalid_argument("sInfoClient.dwSizeBuffer == 0");
+
+		if (sInfoClient.wBufferCount == 0)
+			throw std::invalid_argument("sInfoClient.wBufferCount == 0");
 
 		if (dwCountClient == 0)
 			throw std::invalid_argument("dwCountClient == 0");
@@ -113,6 +119,12 @@ void CNetworkTestPrefix::connectedClientHandler(
 	UNREFERENCED_PARAMETER(pClient);
 }
 //==============================================================================
+void CNetworkTestPrefix::statisticHandler(
+	const std::unordered_map<INetworkTestStatistic*, SStatisticClient> statisticClients) noexcept
+{
+	UNREFERENCED_PARAMETER(statisticClients);
+}
+//==============================================================================
 void CNetworkTestPrefix::disconnectedClientHandler(
 	INetworkTestStatistic* const pClient) noexcept
 {
@@ -142,6 +154,11 @@ void CNetworkTestPrefix::threadUpdate() noexcept
 				assert(k != nullptr);
 				/**  */
 				k->getStatistic(v, dwDifTime);
+			}
+
+			if (!_statisticClients.empty())
+			{
+				statisticHandler(_statisticClients);
 			}
 		}
 		catch (const std::exception& ex)

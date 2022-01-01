@@ -15,9 +15,11 @@ namespace networktest
 		{
 			/** размер буфера */
 			DWORD dwSizeBuffer;
-
 			/** пропускная способность */
-			DWORD dwBandwidth;
+			DWORD dwBandWidth;
+			/** количество буфером передачи */
+			WORD wBufferCount;
+
 			/** признак приема данных */
 			bool bIsRecv;
 			/** признак отправки данных */
@@ -26,7 +28,6 @@ namespace networktest
 		#pragma pack()
 	//==========================================================================
 		/** статистика клиента */
-		#pragma pack(1)
 		typedef struct _SStatisticClient
 		{	
 			/** начальная точка отсчета */
@@ -42,12 +43,11 @@ namespace networktest
 			/** информация о сети клиента */
 			SInfoClient info;
 		}SStatisticClient, * PSStatisticClient;
-		#pragma pack()
 	//==========================================================================
 	#pragma endregion
 
-	#pragma region Private_Inner
-	private:
+	#pragma region Protected_Inner
+	protected:
 	//==========================================================================
 		/** класс тестирования сети*/
 		class INetworkTestStatistic;
@@ -106,6 +106,13 @@ namespace networktest
 		*/
 		DATATRANSFER virtual void connectedClientHandler(
 			INetworkTestStatistic* const pClient) noexcept;
+	//==========================================================================
+		/**
+		* виртуальное уведомление об тике сбора статистики.
+		* @param statisticClients - статистика.
+		*/
+		DATATRANSFER virtual void statisticHandler(
+			const std::unordered_map<INetworkTestStatistic*, SStatisticClient> statisticClients) noexcept;
 	//==========================================================================
 		/**
 		* виртуальное уведомление об отключении клиента.

@@ -18,9 +18,22 @@ CTcpClientNetworkTestPrefix::CTcpClientNetworkTest(
 
 		/** выдел€ем буферы под операции */
 		if (_pNetworkTest->_sInfoClient.bIsRecv)
-			_bufferRecv.resize(_pNetworkTest->_sInfoClient.dwSizeBuffer);
+		{
+			for (WORD i = 0; i < _pNetworkTest->_sInfoClient.wBufferCount; i++)
+			{
+				_listBufferRecv.push_back(
+					std::vector<BYTE>(_pNetworkTest->_sInfoClient.dwSizeBuffer));
+			}
+		}
+			
 		if (_pNetworkTest->_sInfoClient.bIsSend)
-			_bufferSend.resize(_pNetworkTest->_sInfoClient.dwSizeBuffer);
+		{
+			for (WORD i = 0; i < _pNetworkTest->_sInfoClient.wBufferCount; i++)
+			{
+				_listBufferSend.push_back(
+					std::vector<BYTE>(_pNetworkTest->_sInfoClient.dwSizeBuffer));
+			}
+		}
 	}
 	catch (const std::exception& ex)
 	{
@@ -64,6 +77,11 @@ void CTcpClientNetworkTestPrefix::getStatistic(
 	sStatisticClient.nAvgRecvData = sStatisticClient.nAllRecvData / tickCountDif;
 }
 //==============================================================================
+const wname::network::socket::CSocketAddress& CTcpClientNetworkTestPrefix::getAddress() noexcept
+{
+	return _socketAddress;
+}
+//==============================================================================
 void CTcpClientNetworkTestPrefix::clientAsyncRecvComplitionHandler(
 	const PBYTE bufferRecv,
 	const DWORD dwReturnSize,
@@ -84,7 +102,7 @@ void CTcpClientNetworkTestPrefix::clientAsyncRecvComplitionHandler(
 		if (_pNetworkTest->_sInfoClient.bIsRecv)
 		{
 			const auto ecRecv = startAsyncRecv(
-				_bufferRecv.data(), (DWORD)_bufferRecv.size(), MSG_WAITALL);
+				bufferRecv, dwReturnSize, MSG_WAITALL);
 			if (ecRecv)
 			{
 				/** ошибка старта приема */
@@ -118,7 +136,7 @@ void CTcpClientNetworkTestPrefix::clientAsyncSendComplitionHandler(
 		if (_pNetworkTest->_sInfoClient.bIsSend)
 		{
 			const auto ecSend = startAsyncSend(
-				_bufferSend.data(), (DWORD)_bufferSend.size());
+				bufferSend, dwReturnSize);
 			if (ecSend)
 			{
 				/** ошибка старта отправки */
@@ -145,10 +163,18 @@ void CTcpClientNetworkTestPrefix::clientConnected(
 
 	try
 	{
+		if (!_socket.setKeepAlive(true))
+		{
+			/** ошибка установки значени€ */
+			return;
+		}
+
 		/** отправл€ем информацию о сети */
 		DWORD dwReturnedByte = 0;
 		auto ecSend = startSend(
-			(PBYTE)&_pNetworkTest->_sInfoClient, sizeof(_pNetworkTest->_sInfoClient), &dwReturnedByte);
+			(PBYTE)&_pNetworkTest->_sInfoClient, 
+			sizeof(_pNetworkTest->_sInfoClient),
+			&dwReturnedByte);
 		if (ecSend)
 		{
 			/** ошибка старта отправки */
@@ -157,24 +183,30 @@ void CTcpClientNetworkTestPrefix::clientConnected(
 
 		if (_pNetworkTest->_sInfoClient.bIsRecv)
 		{
-			const auto ecRecv =	startAsyncRecv(
-				_bufferRecv.data(), (DWORD)_bufferRecv.size(), MSG_WAITALL);
-			if (ecRecv)
+			for (auto &it : _listBufferRecv)
 			{
-				/** ошибка старта приема */
-				return;
-			}
+				const auto ecRecv = startAsyncRecv(
+					it.data(), (DWORD)it.size(), MSG_WAITALL);
+				if (ecRecv)
+				{
+					/** ошибка старта приема */
+					return;
+				}
+			}		
 		}
 
 		if (_pNetworkTest->_sInfoClient.bIsSend)
 		{
-			ecSend = startAsyncSend(
-				_bufferSend.data(), (DWORD)_bufferSend.size());
-			if (ecSend)
+			for (auto& it : _listBufferSend)
 			{
-				/** ошибка старта отправки */
-				return;
-			}
+				ecSend = startAsyncSend(
+					it.data(), (DWORD)it.size());
+				if (ecSend)
+				{
+					/** ошибка старта отправки */
+					return;
+				}
+			}	
 		}
 
 		/** подключаемс€ к управл€ющему объекту */

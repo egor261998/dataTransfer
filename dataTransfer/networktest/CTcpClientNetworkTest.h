@@ -33,6 +33,12 @@ namespace networktest
 			const DWORD dwDifTime) noexcept override;
 	//==========================================================================
 		/**
+		* получение адреса.
+		* @return - адрес подключения.
+		*/
+		DATATRANSFER const wname::network::socket::CSocketAddress& getAddress() noexcept override;
+	//==========================================================================
+		/**
 		* деструктор.
 		*/
 		DATATRANSFER ~CTcpClientNetworkTest();
@@ -92,9 +98,9 @@ namespace networktest
 		CNetworkTest* const _pNetworkTest;
 
 		/** буфер приема данных */
-		std::vector<BYTE> _bufferRecv;
+		std::list<std::vector<BYTE>> _listBufferRecv;
 		/** буфер отправки данных */
-		std::vector<BYTE> _bufferSend;
+		std::list<std::vector<BYTE>> _listBufferSend;
 	//==========================================================================
 	#pragma endregion
 	};

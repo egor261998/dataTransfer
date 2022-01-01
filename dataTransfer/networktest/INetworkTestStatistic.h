@@ -18,6 +18,12 @@ namespace networktest
 			CNetworkTest::SStatisticClient& sStatisticClient,
 			const DWORD dwDifTime) noexcept = 0;
 	//==========================================================================
+		/**
+		* получение адреса.
+		* @return - адрес подключения.
+		*/
+		DATATRANSFER virtual const wname::network::socket::CSocketAddress& getAddress() noexcept = 0;
+	//==========================================================================
 	#pragma endregion
 	};
 }

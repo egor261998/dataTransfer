@@ -42,6 +42,11 @@ void CTcpConnectedClientNetworkTestPrefix::getStatistic(
 	sStatisticClient.nAvgRecvData = sStatisticClient.nAllRecvData / tickCountDif;
 }
 //==============================================================================
+const wname::network::socket::CSocketAddress& CTcpConnectedClientNetworkTestPrefix::getAddress() noexcept
+{
+	return _remotelAddress;
+}
+//==============================================================================
 void CTcpConnectedClientNetworkTestPrefix::clientAsyncRecvComplitionHandler(
 	const PBYTE bufferRecv,
 	const DWORD dwReturnSize,
@@ -62,7 +67,7 @@ void CTcpConnectedClientNetworkTestPrefix::clientAsyncRecvComplitionHandler(
 		if (_sInfoClient.bIsRecv)
 		{
 			const auto ecRecv = startAsyncRecv(
-				_bufferRecv.data(), (DWORD)_bufferRecv.size(), MSG_WAITALL);
+				bufferRecv, dwReturnSize, MSG_WAITALL);
 			if (ecRecv)
 			{
 				/** ошибка старта приема */
@@ -96,7 +101,7 @@ void CTcpConnectedClientNetworkTestPrefix::clientAsyncSendComplitionHandler(
 		if (_sInfoClient.bIsSend)
 		{
 			const auto ecSend = startAsyncSend(
-				_bufferSend.data(), (DWORD)_bufferSend.size());
+				bufferSend, dwReturnSize);
 			if (ecSend)
 			{
 				/** ошибка старта отправки */
@@ -123,6 +128,12 @@ void CTcpConnectedClientNetworkTestPrefix::clientConnected(
 
 	try
 	{
+		if (!_socket.setKeepAlive(true))
+		{
+			/** ошибка установки значения */
+			return;
+		}
+
 		/** получаем информацию о сети */
 		DWORD dwReturnedByte = 0;
 		SInfoClient sInfoClient;
@@ -142,29 +153,48 @@ void CTcpConnectedClientNetworkTestPrefix::clientConnected(
 
 		/** выделяем буферы под операции */
 		if (_sInfoClient.bIsRecv)
-			_bufferRecv.resize(_sInfoClient.dwSizeBuffer);
-		if (_sInfoClient.bIsSend)
-			_bufferSend.resize(_sInfoClient.dwSizeBuffer);
+		{
+			for (WORD i = 0; i < _sInfoClient.wBufferCount; i++)
+			{
+				_listBufferRecv.push_back(
+					std::vector<BYTE>(_sInfoClient.dwSizeBuffer));
+			}
+		}
 
 		if (_sInfoClient.bIsSend)
 		{
-			const auto ecSend = startAsyncSend(
-				_bufferSend.data(), (DWORD)_bufferSend.size());
-			if (ecSend)
+			for (WORD i = 0; i < _sInfoClient.wBufferCount; i++)
 			{
-				/** ошибка старта отправки */
-				return;
+				_listBufferSend.push_back(
+					std::vector<BYTE>(_sInfoClient.dwSizeBuffer));
 			}
 		}
 
 		if (_sInfoClient.bIsRecv)
 		{
-			ecRecv = startAsyncRecv(
-				_bufferRecv.data(), (DWORD)_bufferRecv.size(), MSG_WAITALL);
-			if (ecRecv)
+			for (auto& it : _listBufferRecv)
 			{
-				/** ошибка старта приема */
-				return;
+				ecRecv = startAsyncRecv(
+					it.data(), (DWORD)it.size(), MSG_WAITALL);
+				if (ecRecv)
+				{
+					/** ошибка старта приема */
+					return;
+				}
+			}
+		}
+
+		if (_sInfoClient.bIsSend)
+		{
+			for (auto& it : _listBufferSend)
+			{
+				const auto ecSend = startAsyncSend(
+					it.data(), (DWORD)it.size());
+				if (ecSend)
+				{
+					/** ошибка старта отправки */
+					return;
+				}
 			}
 		}
 
