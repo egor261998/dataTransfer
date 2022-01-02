@@ -11,7 +11,18 @@ CTcpServerNetworkTestPrefix::CTcpServerNetworkTest(
 	: CTcpServer(strIp, wPort, pIocp),
 	_pNetworkTest(pNetworkTest)
 {
-	if (!pNetworkTest->startOperation())
+	try
+	{
+		if (_pNetworkTest == nullptr)
+			throw std::invalid_argument("_pNetworkTest == nullptr");
+	}
+	catch (const std::exception& ex)
+	{
+		_pIocp->log(wname::logger::EMessageType::critical, ex);
+		throw;
+	}
+	
+	if (!_pNetworkTest->startOperation())
 	{
 		throw std::logic_error("pNetworkTest is not start");
 	}

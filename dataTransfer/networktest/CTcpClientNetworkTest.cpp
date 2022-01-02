@@ -35,7 +35,7 @@ CTcpClientNetworkTestPrefix::CTcpClientNetworkTest(
 			}
 		}
 
-		if (!pNetworkTest->startOperation())
+		if (!_pNetworkTest->startOperation())
 		{
 			throw std::logic_error("pNetworkTest is not start");
 		}

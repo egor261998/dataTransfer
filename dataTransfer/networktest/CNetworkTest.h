@@ -115,7 +115,7 @@ namespace networktest
 		/**
 		* закончить работу и дождаться всех операций.
 		*/
-		DATATRANSFER void release() noexcept;
+		DATATRANSFER void release() noexcept override;
 	//==========================================================================
 		/**
 		* деструктор тестирования сети.
