@@ -49,6 +49,26 @@ void CTcpServerNetworkTestPrefix::serverConnected(
 	{
 		_pIocp->log(wname::logger::EMessageType::warning, L"serverConnected failed", ec);
 	}	
+
+	/** пробуем подключиться снова */
+	while (ec)
+	{
+		wname::misc::CCounterScoped counter(*this);
+		if (!counter.isStartOperation())
+		{
+			/** выключение */
+			return;
+		}
+
+		/** переподключение */
+		_dwRecconect++;
+		const auto ecConnect = connectServer();
+		if (!ecConnect)
+		{
+			/** подключились */
+			break;
+		}
+	}
 }
 //==============================================================================
 void CTcpServerNetworkTestPrefix::serverDisconnected(
