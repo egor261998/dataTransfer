@@ -84,8 +84,8 @@ namespace networktest
 	//==========================================================================
 	#pragma endregion
 
-	#pragma region Protected_Data
-	protected:
+	#pragma region Private_Data
+	private:
 	//==========================================================================
 		/** информация о сети */
 		SInfoClient _sInfoClient {0};

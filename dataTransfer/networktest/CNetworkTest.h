@@ -129,7 +129,7 @@ namespace networktest
 	//==========================================================================
 	#pragma endregion
 
-	#pragma region Private_Method
+	#pragma region Protected_Method
 	private:
 	//==========================================================================
 		/**
@@ -146,7 +146,7 @@ namespace networktest
 		* @param statisticClients - статистика.
 		*/
 		DATATRANSFER virtual void statisticHandler(
-			const std::unordered_map<INetworkTestStatistic*, SStatisticClient> statisticClients) noexcept;
+			const std::unordered_map<INetworkTestStatistic*, SStatisticClient>& statisticClients) noexcept;
 	//==========================================================================
 		/**
 		* виртуальное уведомление об отключении клиента.
@@ -156,6 +156,11 @@ namespace networktest
 		DATATRANSFER virtual void disconnectedClientHandler(
 			INetworkTestStatistic* const pClient,
 			const std::error_code ec) noexcept;
+	//==========================================================================
+	#pragma endregion
+
+	#pragma region Private_Method
+	private:
 	//==========================================================================
 		/**
 		* подключение клиента.
@@ -187,7 +192,12 @@ namespace networktest
 	//==========================================================================
 		/** механизм ввода/вывода */
 		std::shared_ptr<wname::io::iocp::CIocp> _pIocp;
+	//==========================================================================
+	#pragma endregion
 
+	#pragma region Private_Data
+	private:
+	//==========================================================================
 		/** информация о клиенте */
 		SInfoClient _sInfoClient {0};
 		/** клиенты */

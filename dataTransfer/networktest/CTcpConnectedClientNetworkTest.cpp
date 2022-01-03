@@ -44,7 +44,7 @@ void CTcpConnectedClientNetworkTestPrefix::getStatistic(
 //==============================================================================
 const wname::network::socket::CSocketAddress& CTcpConnectedClientNetworkTestPrefix::getAddress() noexcept
 {
-	return _remotelAddress;
+	return CTcpConnectedClient::getClientAddress();
 }
 //==============================================================================
 void CTcpConnectedClientNetworkTestPrefix::clientAsyncRecvComplitionHandler(
@@ -129,11 +129,13 @@ void CTcpConnectedClientNetworkTestPrefix::clientConnected(
 
 	try
 	{
-		if (!_socket.setKeepAlive(true))
+	
+		const auto ecKeepAlive = setKeepAlive(true);
+		if (ecKeepAlive)
 		{
-			/** ошибка установки значения */
-			dynamic_cast<CTcpServerNetworkTest*>(_pParent)->_pNetworkTest->connectedClient(this, 
-				std::error_code(WSAGetLastError(), std::system_category()));
+			/** ошибка установки опции */
+			dynamic_cast<CTcpServerNetworkTest*>(_pParent)->_pNetworkTest->connectedClient(this, ecKeepAlive);
+			disconnect(ecKeepAlive);
 			return;
 		}
 

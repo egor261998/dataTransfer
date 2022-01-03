@@ -33,9 +33,6 @@ CNetworkTestPrefix::CNetworkTest(
 			throw std::invalid_argument("dwCountClient == 0");
 
 		memcpy(&_sInfoClient, &sInfoClient, sizeof(SInfoClient));
-
-		initialize();
-		_evThreadUpdate.initialize();
 		_threadUpdate = std::async(std::launch::async, &CNetworkTest::threadUpdate, this);
 
 		for (DWORD i = 0; i < dwCountClient; i++)
@@ -63,8 +60,6 @@ CNetworkTestPrefix::CNetworkTest(
 	{
 		_pIocp = pIocp;
 
-		initialize();
-		_evThreadUpdate.initialize();
 		_threadUpdate = std::async(std::launch::async, &CNetworkTest::threadUpdate, this);
 
 		_pTcpServerNetworkTest = std::make_unique<CTcpServerNetworkTest>(
@@ -209,7 +204,7 @@ void CNetworkTestPrefix::connectedClientHandler(
 }
 //==============================================================================
 void CNetworkTestPrefix::statisticHandler(
-	const std::unordered_map<INetworkTestStatistic*, SStatisticClient> statisticClients) noexcept
+	const std::unordered_map<INetworkTestStatistic*, SStatisticClient>& statisticClients) noexcept
 {
 	UNREFERENCED_PARAMETER(statisticClients);
 }

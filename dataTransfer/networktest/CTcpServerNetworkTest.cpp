@@ -62,12 +62,19 @@ void CTcpServerNetworkTestPrefix::serverConnected(
 
 		/** переподключение */
 		_dwRecconect++;
-		const auto ecConnect = connectServer();
-		if (!ecConnect)
+		try
 		{
-			/** подключились */
-			break;
+			const auto ecConnect = connectServer();
+			if (!ecConnect)
+			{
+				/** подключились */
+				break;
+			}
 		}
+		catch (const std::exception& ex)
+		{
+			_pIocp->log(wname::logger::EMessageType::warning, ex);
+		}	
 	}
 }
 //==============================================================================
