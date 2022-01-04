@@ -130,7 +130,7 @@ namespace networktest
 	#pragma endregion
 
 	#pragma region Protected_Method
-	private:
+	protected:
 	//==========================================================================
 		/**
 		* виртуальное уведомление о подключение клиента.
