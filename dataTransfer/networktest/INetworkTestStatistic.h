@@ -22,7 +22,7 @@ namespace networktest
 		* получение адреса.
 		* @return - адрес подключения.
 		*/
-		DATATRANSFER virtual const wname::network::socket::CSocketAddress& getAddress() noexcept = 0;
+		DATATRANSFER virtual wname::network::socket::CSocketAddress getAddress() noexcept = 0;
 	//==========================================================================
 	#pragma endregion
 	};

@@ -51,6 +51,7 @@ void CTcpClientNetworkTestPrefix::getStatistic(
 	SStatisticClient& sStatisticClient,
 	const DWORD dwDifTime) noexcept
 {
+	#pragma warning(disable: 26493)
 	if (sStatisticClient.tickCount == 0)
 	{
 		sStatisticClient.tickCount = GetTickCount64();
@@ -79,10 +80,10 @@ void CTcpClientNetworkTestPrefix::getStatistic(
 	sStatisticClient.nAvgRecvData = sStatisticClient.nAllRecvData / tickCountDif;
 
 	/** были ли переподключени€ */
-	sStatisticClient.dwRecconect = _dwRecconect;
+	sStatisticClient.dwRecconect = _dwReconnect;
 }
 //==============================================================================
-const wname::network::socket::CSocketAddress& CTcpClientNetworkTestPrefix::getAddress() noexcept
+wname::network::socket::CSocketAddress CTcpClientNetworkTestPrefix::getAddress() noexcept
 {
 	return CTcpClient::getAddress();
 }
@@ -92,7 +93,6 @@ void CTcpClientNetworkTestPrefix::clientAsyncRecvComplitionHandler(
 	const DWORD dwReturnSize,
 	const std::error_code ec) noexcept
 {
-	#pragma warning(disable: 26493)
 	UNREFERENCED_PARAMETER(bufferRecv);
 	UNREFERENCED_PARAMETER(dwReturnSize);
 
@@ -126,7 +126,6 @@ void CTcpClientNetworkTestPrefix::clientAsyncSendComplitionHandler(
 	const DWORD dwReturnSize,
 	const std::error_code ec) noexcept
 {
-	#pragma warning(disable: 26493)
 	UNREFERENCED_PARAMETER(bufferSend);
 	UNREFERENCED_PARAMETER(dwReturnSize);
 
@@ -163,7 +162,7 @@ void CTcpClientNetworkTestPrefix::clientConnected(
 	if (ec)
 	{
 		/** валим */ 
-		_pNetworkTest->connectedClient(this, ec);
+		_pNetworkTest->connectedClient(this, _dwReconnect, ec);
 		return;
 	}
 
@@ -173,7 +172,7 @@ void CTcpClientNetworkTestPrefix::clientConnected(
 		if(ecKeepAlive)
 		{
 			/** ошибка установки опции */
-			_pNetworkTest->connectedClient(this, ecKeepAlive);
+			_pNetworkTest->connectedClient(this, _dwReconnect, ecKeepAlive);
 			disconnect(ecKeepAlive);
 			return;
 		}
@@ -187,7 +186,7 @@ void CTcpClientNetworkTestPrefix::clientConnected(
 		if (ecSend)
 		{
 			/** ошибка старта отправки */
-			_pNetworkTest->connectedClient(this, ecSend);
+			_pNetworkTest->connectedClient(this, _dwReconnect, ecSend);
 			return;
 		}
 
@@ -200,7 +199,7 @@ void CTcpClientNetworkTestPrefix::clientConnected(
 				if (ecRecv)
 				{
 					/** ошибка старта приема */
-					_pNetworkTest->connectedClient(this, ecRecv);
+					_pNetworkTest->connectedClient(this, _dwReconnect, ecRecv);
 					return;
 				}
 			}		
@@ -215,19 +214,19 @@ void CTcpClientNetworkTestPrefix::clientConnected(
 				if (ecSend)
 				{
 					/** ошибка старта отправки */
-					_pNetworkTest->connectedClient(this, ec);
+					_pNetworkTest->connectedClient(this, _dwReconnect, ec);
 					return;
 				}
 			}	
 		}
 
 		/** подключаемс€ к управл€ющему объекту */
-		_pNetworkTest->connectedClient(this);
+		_pNetworkTest->connectedClient(this, _dwReconnect);
 	}
 	catch (const std::exception& ex)
 	{
 		_pIocp->log(wname::logger::EMessageType::critical, ex);
-		_pNetworkTest->connectedClient(this, 
+		_pNetworkTest->connectedClient(this, _dwReconnect,
 			std::error_code(ERROR_FUNCTION_FAILED, std::system_category()));
 	}
 }
@@ -236,7 +235,7 @@ void CTcpClientNetworkTestPrefix::clientDisconnected(
 	const std::error_code ec) noexcept
 {
 	/** отключаемс€ от управл€ющиего объекта */
-	_pNetworkTest->disconnectedClient(this, ec);
+	_pNetworkTest->disconnectedClient(this, _dwReconnect, ec);
 
 	/** пробуем подключитьс€ снова */
 	while (ec)
@@ -249,7 +248,7 @@ void CTcpClientNetworkTestPrefix::clientDisconnected(
 		}
 
 		/** переподключение */
-		_dwRecconect++;
+		_dwReconnect++;
 		const auto ecConnect = connect();
 		if (!ecConnect)
 		{
@@ -259,12 +258,18 @@ void CTcpClientNetworkTestPrefix::clientDisconnected(
 	}
 }
 //==============================================================================
-CTcpClientNetworkTestPrefix::~CTcpClientNetworkTest()
+void CTcpClientNetworkTestPrefix::release() noexcept
 {
 	/** отключаем */
 	disconnect();
 
 	/** ждем завершени€ всего */
+	__super::release();
+}
+//==============================================================================
+CTcpClientNetworkTestPrefix::~CTcpClientNetworkTest()
+{
+	/** завершение всего */
 	release();
 
 	_pNetworkTest->endOperation();

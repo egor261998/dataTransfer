@@ -135,10 +135,12 @@ namespace networktest
 		/**
 		* виртуальное уведомление о подключение клиента.
 		* @param pClient - клиент.
+		* @param dwReconnect - количество переподключений.
 		* @param ec - ошибка подключения.
 		*/
 		DATATRANSFER virtual void connectedClientHandler(
 			INetworkTestStatistic* const pClient,
+			const DWORD dwReconnect,
 			const std::error_code ec) noexcept;
 	//==========================================================================
 		/**
@@ -151,10 +153,12 @@ namespace networktest
 		/**
 		* виртуальное уведомление об отключении клиента.
 		* @param pClient - клиент.
+		* @param dwReconnect - количество переподключений.
 		* @param ec - ошибка отключения.
 		*/
 		DATATRANSFER virtual void disconnectedClientHandler(
 			INetworkTestStatistic* const pClient,
+			const DWORD dwReconnect,
 			const std::error_code ec) noexcept;
 	//==========================================================================
 	#pragma endregion
@@ -165,19 +169,23 @@ namespace networktest
 		/**
 		* подключение клиента.
 		* @param pClient - клиент.
+		* @param dwReconnect - количество переподключений.
 		* @param ec - ошибка подключения.
 		*/
 		DATATRANSFER void connectedClient(
 			INetworkTestStatistic* const pClient,
+			const DWORD dwReconnect,
 			const std::error_code ec = std::error_code()) noexcept;
 	//==========================================================================
 		/**
 		* отключение клиента.
 		* @param pClient - клиент.
+		* @param dwReconnect - количество переподключений.
 		* @param ec - ошибка отключения.
 		*/
 		DATATRANSFER void disconnectedClient(
 			INetworkTestStatistic* const pClient,
+			const DWORD dwReconnect,
 			const std::error_code ec = std::error_code()) noexcept;
 	//==========================================================================
 		/**

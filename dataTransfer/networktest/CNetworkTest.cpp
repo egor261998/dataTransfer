@@ -156,6 +156,7 @@ void CNetworkTestPrefix::release() noexcept
 //==============================================================================
 void CNetworkTestPrefix::connectedClient(
 	INetworkTestStatistic* const pClient,
+	const DWORD dwReconnect,
 	const std::error_code ec) noexcept
 {
 	wname::cs::CCriticalSectionScoped lock(_csCounter);
@@ -174,7 +175,7 @@ void CNetworkTestPrefix::connectedClient(
 			}
 		}
 
-		connectedClientHandler(pClient, ec);
+		connectedClientHandler(pClient, dwReconnect, ec);
 	}
 	catch (const std::exception& ex)
 	{
@@ -187,19 +188,22 @@ void CNetworkTestPrefix::connectedClient(
 //==============================================================================
 void CNetworkTestPrefix::disconnectedClient(
 	INetworkTestStatistic* const pClient,
+	const DWORD dwReconnect,
 	const std::error_code ec) noexcept
 {
 	wname::cs::CCriticalSectionScoped lock(_csCounter);
 
 	_statisticClients.erase(pClient);
-	disconnectedClientHandler(pClient, ec);
+	disconnectedClientHandler(pClient, dwReconnect, ec);
 }
 //==============================================================================
 void CNetworkTestPrefix::connectedClientHandler(
 	INetworkTestStatistic* const pClient,
+	const DWORD dwReconnect,
 	const std::error_code ec) noexcept
 {
 	UNREFERENCED_PARAMETER(pClient);
+	UNREFERENCED_PARAMETER(dwReconnect);
 	UNREFERENCED_PARAMETER(ec);
 }
 //==============================================================================
@@ -211,9 +215,11 @@ void CNetworkTestPrefix::statisticHandler(
 //==============================================================================
 void CNetworkTestPrefix::disconnectedClientHandler(
 	INetworkTestStatistic* const pClient,
+	const DWORD dwReconnect,
 	const std::error_code ec) noexcept
 {
 	UNREFERENCED_PARAMETER(pClient);
+	UNREFERENCED_PARAMETER(dwReconnect);
 	UNREFERENCED_PARAMETER(ec);
 }
 //==============================================================================

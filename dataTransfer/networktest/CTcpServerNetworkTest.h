@@ -46,6 +46,11 @@ namespace networktest
 			const std::error_code ec) noexcept override;
 	//==========================================================================
 		/**
+		* закончить работу.
+		*/
+		WNAME void release() noexcept override;
+	//==========================================================================
+		/**
 		* деструктор TCP сервера для тестирования.
 		*/
 		DATATRANSFER ~CTcpServerNetworkTest();

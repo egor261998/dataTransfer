@@ -36,7 +36,12 @@ namespace networktest
 		* получение адреса.
 		* @return - адрес подключения.
 		*/
-		DATATRANSFER const wname::network::socket::CSocketAddress& getAddress() noexcept override;
+		DATATRANSFER wname::network::socket::CSocketAddress getAddress() noexcept override;
+	//==========================================================================
+		/**
+		* закончить работу.
+		*/
+		WNAME void release() noexcept override;
 	//==========================================================================
 		/**
 		* деструктор.
@@ -103,7 +108,7 @@ namespace networktest
 		std::list<std::vector<BYTE>> _listBufferSend;
 
 		/** количество переподключений */
-		std::atomic_uint _dwRecconect = 0;
+		std::atomic_uint _dwReconnect = 0;
 	//==========================================================================
 	#pragma endregion
 	};

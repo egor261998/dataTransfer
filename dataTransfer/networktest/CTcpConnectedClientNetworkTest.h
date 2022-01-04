@@ -30,7 +30,12 @@ namespace networktest
 		* получение адреса.
 		* @return - адрес подключения.
 		*/
-		DATATRANSFER const wname::network::socket::CSocketAddress& getAddress() noexcept override;
+		DATATRANSFER wname::network::socket::CSocketAddress getAddress() noexcept override;
+	//==========================================================================
+		/**
+		* закончить работу.
+		*/
+		WNAME void release() noexcept override;
 	//==========================================================================
 		/**
 		* деструктор.

@@ -87,12 +87,18 @@ void CTcpServerNetworkTestPrefix::serverDisconnected(
 	}
 }
 //==============================================================================
-CTcpServerNetworkTestPrefix::~CTcpServerNetworkTest()
+void CTcpServerNetworkTestPrefix::release() noexcept
 {
 	/** отключаем */
 	disconnectServer();
 
 	/** ждем завершения всего */
+	__super::release();
+}
+//==============================================================================
+CTcpServerNetworkTestPrefix::~CTcpServerNetworkTest()
+{
+	/** завершение всего */
 	release();
 
 	_pNetworkTest->endOperation();
