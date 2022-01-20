@@ -4,7 +4,7 @@ _DATATRANSFER_BEGIN
 namespace networktest
 {
 	/** клиент TCP сервера для теста сети */
-	class CNetworkTest::CTcpServerNetworkTest::CTcpConnectedClientNetworkTest : 
+	class DATATRANSFER CNetworkTest::CTcpServerNetworkTest::CTcpConnectedClientNetworkTest final :
 		public wname::network::CTcpConnectedClient, public INetworkTestStatistic
 	{
 	#pragma region Public_Method
@@ -14,7 +14,7 @@ namespace networktest
 		* конструктор подключаемого клиента.
 		* @param pParent - родительный класс TCP сервера.
 		*/
-		DATATRANSFER CTcpConnectedClientNetworkTest(
+		CTcpConnectedClientNetworkTest(
 			CTcpServer* const pParent);
 	//==========================================================================
 		/**
@@ -22,7 +22,7 @@ namespace networktest
 		* @param sStatisticClient - статистика.
 		* @param dwDifTime - промежуток опроса.
 		*/
-		DATATRANSFER void getStatistic(
+		void getStatistic(
 			SStatisticClient& sStatisticClient,
 			const DWORD dwDifTime) noexcept override;
 	//==========================================================================
@@ -30,17 +30,19 @@ namespace networktest
 		* получение адреса.
 		* @return - адрес подключения.
 		*/
-		DATATRANSFER wname::network::socket::CSocketAddress getAddress() noexcept override;
+		wname::network::socket::CSocketAddress getAddress() noexcept override;
 	//==========================================================================
 		/**
 		* закончить работу.
+		* @param bIsWait - признак ожидания.
 		*/
-		WNAME void release() noexcept override;
+		void release(
+			const bool bIsWait) noexcept override;
 	//==========================================================================
 		/**
 		* деструктор.
 		*/
-		DATATRANSFER ~CTcpConnectedClientNetworkTest();
+		~CTcpConnectedClientNetworkTest();
 	//==========================================================================
 
 	#pragma region Private_Method
@@ -52,7 +54,7 @@ namespace networktest
 		* @param dwReturnSize - количество полученных байт.
 		* @param ec - код завершения.
 		*/
-		DATATRANSFER void clientAsyncRecvComplitionHandler(
+		void clientAsyncRecvComplitionHandler(
 			const PBYTE bufferRecv,
 			const DWORD dwReturnSize,
 			const std::error_code ec) noexcept override;
@@ -63,7 +65,7 @@ namespace networktest
 		* @param dwReturnSize - количество переданных байт.
 		* @param ec - код завершения.
 		*/
-		DATATRANSFER void clientAsyncSendComplitionHandler(
+		void clientAsyncSendComplitionHandler(
 			const PBYTE bufferSend,
 			const DWORD dwReturnSize,
 			const std::error_code ec) noexcept override;
@@ -72,14 +74,14 @@ namespace networktest
 		* обработчик события подключения клиента.
 		* @param ec - код ошибки.
 		*/
-		DATATRANSFER void clientConnected(
+		void clientConnected(
 			const std::error_code ec) noexcept override;
 	//==========================================================================
 		/**
 		* обработчик события отключения клиента.
 		* @param ec - код ошибки.
 		*/
-		DATATRANSFER void clientDisconnected(
+		void clientDisconnected(
 			const std::error_code ec) noexcept override;
 	//==========================================================================
 		CTcpConnectedClientNetworkTest(const CTcpConnectedClientNetworkTest&) = delete;

@@ -1,14 +1,14 @@
 #include "../stdafx.h"
 
-#define CTcpServerNetworkTestPrefix datatransfer::networktest::CNetworkTest::CTcpServerNetworkTest
+using datatransfer::networktest::CNetworkTest;
 
 //==============================================================================
-CTcpServerNetworkTestPrefix::CTcpServerNetworkTest(
+CNetworkTest::CTcpServerNetworkTest::CTcpServerNetworkTest(
 	CNetworkTest* const pNetworkTest,
 	const std::string strIp,
 	const WORD wPort,
-	const std::shared_ptr<wname::io::iocp::CIocp>& pIocp)
-	: CTcpServer(strIp, wPort, pIocp),
+	const std::shared_ptr<wname::io::iocp::CIocp>& pIocp) :
+	CTcpServer(strIp, wPort, pIocp),
 	_pNetworkTest(pNetworkTest)
 {
 	try
@@ -28,7 +28,8 @@ CTcpServerNetworkTestPrefix::CTcpServerNetworkTest(
 	}
 }
 //==============================================================================
-std::unique_ptr<CTcpServerNetworkTestPrefix::CTcpConnectedClient> CTcpServerNetworkTestPrefix::createClient()
+std::unique_ptr<CNetworkTest::CTcpServerNetworkTest::CTcpConnectedClient> 
+CNetworkTest::CTcpServerNetworkTest::createClient()
 {
 	try
 	{
@@ -42,7 +43,7 @@ std::unique_ptr<CTcpServerNetworkTestPrefix::CTcpConnectedClient> CTcpServerNetw
 	}
 }
 //==============================================================================
-void CTcpServerNetworkTestPrefix::serverConnected(
+void CNetworkTest::CTcpServerNetworkTest::serverConnected(
 	const std::error_code ec) noexcept
 {
 	if (ec)
@@ -78,7 +79,7 @@ void CTcpServerNetworkTestPrefix::serverConnected(
 	}
 }
 //==============================================================================
-void CTcpServerNetworkTestPrefix::serverDisconnected(
+void CNetworkTest::CTcpServerNetworkTest::serverDisconnected(
 	const std::error_code ec) noexcept
 {
 	if (ec)
@@ -87,19 +88,21 @@ void CTcpServerNetworkTestPrefix::serverDisconnected(
 	}
 }
 //==============================================================================
-void CTcpServerNetworkTestPrefix::release() noexcept
+void CNetworkTest::CTcpServerNetworkTest::release(
+	const bool bIsWait) noexcept
 {
+	__super::release(false);
 	/** отключаем */
 	disconnectServer();
 
 	/** ждем завершения всего */
-	__super::release();
+	__super::release(bIsWait);
 }
 //==============================================================================
-CTcpServerNetworkTestPrefix::~CTcpServerNetworkTest()
+CNetworkTest::CTcpServerNetworkTest::~CTcpServerNetworkTest()
 {
 	/** завершение всего */
-	release();
+	release(true);
 
 	_pNetworkTest->endOperation();
 }

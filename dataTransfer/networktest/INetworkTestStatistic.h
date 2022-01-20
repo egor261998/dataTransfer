@@ -4,7 +4,7 @@ _DATATRANSFER_BEGIN
 namespace networktest
 {
 	/** интерфейс получения статистики */
-	class CNetworkTest::INetworkTestStatistic
+	class DATATRANSFER CNetworkTest::INetworkTestStatistic
 	{
 	#pragma region Public_Method
 	public:
@@ -14,7 +14,7 @@ namespace networktest
 		* @param sStatisticClient - статистика.
 		* @param dwDifTime - промежуток опроса.
 		*/
-		DATATRANSFER virtual void getStatistic(
+		virtual void getStatistic(
 			CNetworkTest::SStatisticClient& sStatisticClient,
 			const DWORD dwDifTime) noexcept = 0;
 	//==========================================================================
@@ -22,7 +22,7 @@ namespace networktest
 		* получение адреса.
 		* @return - адрес подключения.
 		*/
-		DATATRANSFER virtual wname::network::socket::CSocketAddress getAddress() noexcept = 0;
+		virtual wname::network::socket::CSocketAddress getAddress() noexcept = 0;
 	//==========================================================================
 	#pragma endregion
 	};

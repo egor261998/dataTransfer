@@ -1,14 +1,14 @@
 #include "../stdafx.h"
 
-#define CTcpClientNetworkTestPrefix datatransfer::networktest::CNetworkTest::CTcpClientNetworkTest
+using datatransfer::networktest::CNetworkTest;
 
 //==============================================================================
-CTcpClientNetworkTestPrefix::CTcpClientNetworkTest(
+CNetworkTest::CTcpClientNetworkTest::CTcpClientNetworkTest(
 	CNetworkTest* const pNetworkTest,
 	const std::string strIp,
 	const WORD wPort,
-	const std::shared_ptr<wname::io::iocp::CIocp>& pIocp)
-	: CTcpClient(strIp, wPort, pIocp),
+	const std::shared_ptr<wname::io::iocp::CIocp>& pIocp): 
+	CTcpClient(strIp, wPort, pIocp),
 	_pNetworkTest(pNetworkTest)
 {
 	try
@@ -47,7 +47,7 @@ CTcpClientNetworkTestPrefix::CTcpClientNetworkTest(
 	}
 }
 //==============================================================================
-void CTcpClientNetworkTestPrefix::getStatistic(
+void CNetworkTest::CTcpClientNetworkTest::getStatistic(
 	SStatisticClient& sStatisticClient,
 	const DWORD dwDifTime) noexcept
 {
@@ -83,12 +83,12 @@ void CTcpClientNetworkTestPrefix::getStatistic(
 	sStatisticClient.dwRecconect = _dwReconnect;
 }
 //==============================================================================
-wname::network::socket::CSocketAddress CTcpClientNetworkTestPrefix::getAddress() noexcept
+wname::network::socket::CSocketAddress CNetworkTest::CTcpClientNetworkTest::getAddress() noexcept
 {
 	return CTcpClient::getAddress();
 }
 //==============================================================================
-void CTcpClientNetworkTestPrefix::clientAsyncRecvComplitionHandler(
+void CNetworkTest::CTcpClientNetworkTest::clientAsyncRecvComplitionHandler(
 	const PBYTE bufferRecv,
 	const DWORD dwReturnSize,
 	const std::error_code ec) noexcept
@@ -121,7 +121,7 @@ void CTcpClientNetworkTestPrefix::clientAsyncRecvComplitionHandler(
 	}
 }
 //==============================================================================
-void CTcpClientNetworkTestPrefix::clientAsyncSendComplitionHandler(
+void CNetworkTest::CTcpClientNetworkTest::clientAsyncSendComplitionHandler(
 	const PBYTE bufferSend,
 	const DWORD dwReturnSize,
 	const std::error_code ec) noexcept
@@ -154,7 +154,7 @@ void CTcpClientNetworkTestPrefix::clientAsyncSendComplitionHandler(
 	}
 }
 //==============================================================================
-void CTcpClientNetworkTestPrefix::clientConnected(
+void CNetworkTest::CTcpClientNetworkTest::clientConnected(
 	const std::error_code ec) noexcept
 {
 	#pragma warning(disable: 26493)
@@ -231,7 +231,7 @@ void CTcpClientNetworkTestPrefix::clientConnected(
 	}
 }
 //==============================================================================
-void CTcpClientNetworkTestPrefix::clientDisconnected(
+void CNetworkTest::CTcpClientNetworkTest::clientDisconnected(
 	const std::error_code ec) noexcept
 {
 	/** отключаемся от управляющиего объекта */
@@ -258,19 +258,21 @@ void CTcpClientNetworkTestPrefix::clientDisconnected(
 	}
 }
 //==============================================================================
-void CTcpClientNetworkTestPrefix::release() noexcept
+void CNetworkTest::CTcpClientNetworkTest::release(
+	const bool bIsWait) noexcept
 {
+	__super::release(false);
 	/** отключаем */
 	disconnect();
 
 	/** ждем завершения всего */
-	__super::release();
+	__super::release(bIsWait);
 }
 //==============================================================================
-CTcpClientNetworkTestPrefix::~CTcpClientNetworkTest()
+CNetworkTest::CTcpClientNetworkTest::~CTcpClientNetworkTest()
 {
 	/** завершение всего */
-	release();
+	release(true);
 
 	_pNetworkTest->endOperation();
 }

@@ -4,7 +4,7 @@ _DATATRANSFER_BEGIN
 namespace networktest
 {
 	/** TCP клиент для тестирования сети */
-	class CNetworkTest::CTcpClientNetworkTest : 
+	class DATATRANSFER CNetworkTest::CTcpClientNetworkTest final :
 		public wname::network::CTcpClient, public INetworkTestStatistic
 	{
 	#pragma region Public_Method
@@ -17,7 +17,7 @@ namespace networktest
 		* @param wPort - порт сервера.
 		* @param pIocp - механизм Iocp.
 		*/
-		DATATRANSFER CTcpClientNetworkTest(
+		CTcpClientNetworkTest(
 			CNetworkTest* const pNetworkTest,
 			const std::string strIp,
 			const WORD wPort,
@@ -28,7 +28,7 @@ namespace networktest
 		* @param sStatisticClient - статистика.
 		* @param dwDifTime - промежуток опроса.
 		*/
-		DATATRANSFER void getStatistic(
+		void getStatistic(
 			SStatisticClient& sStatisticClient,
 			const DWORD dwDifTime) noexcept override;
 	//==========================================================================
@@ -36,17 +36,19 @@ namespace networktest
 		* получение адреса.
 		* @return - адрес подключения.
 		*/
-		DATATRANSFER wname::network::socket::CSocketAddress getAddress() noexcept override;
+		wname::network::socket::CSocketAddress getAddress() noexcept override;
 	//==========================================================================
 		/**
 		* закончить работу.
+		* @param bIsWait - признак ожидания.
 		*/
-		WNAME void release() noexcept override;
+		void release(
+			const bool bIsWait) noexcept override;
 	//==========================================================================
 		/**
 		* деструктор.
 		*/
-		DATATRANSFER ~CTcpClientNetworkTest();
+		~CTcpClientNetworkTest();
 	//==========================================================================
 		CTcpClientNetworkTest(const CTcpClientNetworkTest&) = delete;
 		CTcpClientNetworkTest(CTcpClientNetworkTest&&) = delete;
@@ -64,7 +66,7 @@ namespace networktest
 		* @param dwReturnSize - количество полученных байт.
 		* @param ec - код завершения.
 		*/
-		DATATRANSFER void clientAsyncRecvComplitionHandler(
+		void clientAsyncRecvComplitionHandler(
 			const PBYTE bufferRecv,
 			const DWORD dwReturnSize,
 			const std::error_code ec) noexcept override;
@@ -75,7 +77,7 @@ namespace networktest
 		* @param dwReturnSize - количество переданных байт.
 		* @param ec - код завершения.
 		*/
-		DATATRANSFER void clientAsyncSendComplitionHandler(
+		void clientAsyncSendComplitionHandler(
 			const PBYTE bufferSend,
 			const DWORD dwReturnSize,
 			const std::error_code ec) noexcept override;
@@ -84,14 +86,14 @@ namespace networktest
 		* обработчик события подключения клиента.
 		* @param ec - код ошибки.
 		*/
-		DATATRANSFER void clientConnected(
+		void clientConnected(
 			const std::error_code ec) noexcept override;
 	//==========================================================================
 		/**
 		* виртуальный обработчик события отключения клиента.
 		* @param ec - код ошибки.
 		*/
-		DATATRANSFER void clientDisconnected(
+		void clientDisconnected(
 			const std::error_code ec) noexcept override;
 	//==========================================================================
 	#pragma endregion

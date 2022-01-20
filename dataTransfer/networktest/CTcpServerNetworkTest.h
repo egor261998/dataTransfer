@@ -4,7 +4,8 @@ _DATATRANSFER_BEGIN
 namespace networktest
 {
 	/** TCP сервер для тестирования сети */
-	class CNetworkTest::CTcpServerNetworkTest : public wname::network::CTcpServer
+	class DATATRANSFER CNetworkTest::CTcpServerNetworkTest final :
+		public wname::network::CTcpServer
 	{
 		friend class CNetworkTest;
 	#pragma region Public_Inner
@@ -25,7 +26,7 @@ namespace networktest
 		* @param wPort - порт сервера.
 		* @param pIocp - механизм Iocp.
 		*/
-		DATATRANSFER CTcpServerNetworkTest(
+		CTcpServerNetworkTest(
 			CNetworkTest* const pNetworkTest,
 			const std::string strIp,
 			const WORD wPort,
@@ -35,25 +36,27 @@ namespace networktest
 		* обработчик события отключения сервера.
 		* @param ec - код ошибки.
 		*/
-		DATATRANSFER void serverConnected(
+		void serverConnected(
 			const std::error_code ec) noexcept override;
 	//==========================================================================
 		/**
 		* обработчик события отключения сервера.
 		* @param ec - код ошибки.
 		*/
-		DATATRANSFER void serverDisconnected(
+		void serverDisconnected(
 			const std::error_code ec) noexcept override;
 	//==========================================================================
 		/**
 		* закончить работу.
+		* @param bIsWait - признак ожидания.
 		*/
-		WNAME void release() noexcept override;
+		void release(
+			const bool bIsWait) noexcept override;
 	//==========================================================================
 		/**
 		* деструктор TCP сервера для тестирования.
 		*/
-		DATATRANSFER ~CTcpServerNetworkTest();
+		~CTcpServerNetworkTest();
 	//==========================================================================
 		CTcpServerNetworkTest(const CTcpServerNetworkTest&) = delete;
 		CTcpServerNetworkTest(CTcpServerNetworkTest&&) = delete;
@@ -69,7 +72,7 @@ namespace networktest
 		* обработчик создания клиента.
 		* @return - клиент.
 		*/
-		DATATRANSFER std::unique_ptr<CTcpConnectedClient> createClient() override;
+		std::unique_ptr<CTcpConnectedClient> createClient() override;
 	//==========================================================================
 	#pragma endregion
 

@@ -1,9 +1,9 @@
 #include "../stdafx.h"
 
-using CNetworkTestPrefix = datatransfer::networktest::CNetworkTest;
+using datatransfer::networktest::CNetworkTest;
 
 //==============================================================================
-CNetworkTestPrefix::CNetworkTest(
+CNetworkTest::CNetworkTest(
 	const std::string strIp,
 	const WORD wPort,
 	const DWORD dwCountClient,
@@ -48,7 +48,7 @@ CNetworkTestPrefix::CNetworkTest(
 	}
 }
 //==============================================================================
-CNetworkTestPrefix::CNetworkTest(
+CNetworkTest::CNetworkTest(
 	const std::string strIp,
 	const WORD wPort,
 	const std::shared_ptr<wname::io::iocp::CIocp>& pIocp)
@@ -72,8 +72,8 @@ CNetworkTestPrefix::CNetworkTest(
 	}
 }
 //==============================================================================
-std::error_code CNetworkTestPrefix::start(
-	CNetworkTestPrefix::SStatistic& statistic,
+std::error_code CNetworkTest::start(
+	CNetworkTest::SStatistic& statistic,
 	const DWORD dwTime)
 {
 	{
@@ -130,8 +130,10 @@ std::error_code CNetworkTestPrefix::start(
 	return std::error_code();
 }
 //==============================================================================
-void CNetworkTestPrefix::release() noexcept
+void CNetworkTest::release(
+	const bool bIsWait) noexcept
 {
+	__super::release(false);
 	/** клиенты */
 	std::list<std::unique_ptr<CTcpClientNetworkTest>> pTcpClientNetworkTest;
 	/** сервер */
@@ -151,10 +153,10 @@ void CNetworkTestPrefix::release() noexcept
 
 	_evThreadUpdate.notify();
 
-	__super::release();
+	__super::release(bIsWait);
 }
 //==============================================================================
-void CNetworkTestPrefix::connectedClient(
+void CNetworkTest::connectedClient(
 	INetworkTestStatistic* const pClient,
 	const DWORD dwReconnect,
 	const std::error_code ec) noexcept
@@ -186,7 +188,7 @@ void CNetworkTestPrefix::connectedClient(
 	}
 }
 //==============================================================================
-void CNetworkTestPrefix::disconnectedClient(
+void CNetworkTest::disconnectedClient(
 	INetworkTestStatistic* const pClient,
 	const DWORD dwReconnect,
 	const std::error_code ec) noexcept
@@ -197,7 +199,7 @@ void CNetworkTestPrefix::disconnectedClient(
 	disconnectedClientHandler(pClient, dwReconnect, ec);
 }
 //==============================================================================
-void CNetworkTestPrefix::connectedClientHandler(
+void CNetworkTest::connectedClientHandler(
 	INetworkTestStatistic* const pClient,
 	const DWORD dwReconnect,
 	const std::error_code ec) noexcept
@@ -207,13 +209,13 @@ void CNetworkTestPrefix::connectedClientHandler(
 	UNREFERENCED_PARAMETER(ec);
 }
 //==============================================================================
-void CNetworkTestPrefix::statisticHandler(
+void CNetworkTest::statisticHandler(
 	const std::unordered_map<INetworkTestStatistic*, SStatisticClient>& statisticClients) noexcept
 {
 	UNREFERENCED_PARAMETER(statisticClients);
 }
 //==============================================================================
-void CNetworkTestPrefix::disconnectedClientHandler(
+void CNetworkTest::disconnectedClientHandler(
 	INetworkTestStatistic* const pClient,
 	const DWORD dwReconnect,
 	const std::error_code ec) noexcept
@@ -223,7 +225,7 @@ void CNetworkTestPrefix::disconnectedClientHandler(
 	UNREFERENCED_PARAMETER(ec);
 }
 //==============================================================================
-void CNetworkTestPrefix::threadUpdate() noexcept
+void CNetworkTest::threadUpdate() noexcept
 {
 	wname::misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
@@ -265,9 +267,9 @@ void CNetworkTestPrefix::threadUpdate() noexcept
 	}
 }
 //==============================================================================
-CNetworkTestPrefix::~CNetworkTest()
+CNetworkTest::~CNetworkTest()
 {
 	/** ждем всего */
-	release();
+	release(true);
 }
 //==============================================================================

@@ -4,7 +4,7 @@ _DATATRANSFER_BEGIN
 namespace networktest
 {
 	/** тестирование сети */
-	class CNetworkTest : protected wname::misc::CCounter
+	class DATATRANSFER CNetworkTest : protected wname::misc::CCounter
 	{
 	#pragma region Public_Inner
 	public:
@@ -84,7 +84,7 @@ namespace networktest
 		* @param sInfoClient - параметры тестирования сети.
 		* @param pIocp - механизм Iocp.
 		*/
-		DATATRANSFER CNetworkTest(
+		CNetworkTest(
 			const std::string strIp,
 			const WORD wPort,
 			const DWORD dwCountClient,
@@ -97,7 +97,7 @@ namespace networktest
 		* @param wPort - порт сервера.
 		* @param pIocp - механизм Iocp.
 		*/
-		DATATRANSFER CNetworkTest(
+		CNetworkTest(
 			const std::string strIp,
 			const WORD wPort,
 			const std::shared_ptr<wname::io::iocp::CIocp>& pIocp);
@@ -108,19 +108,21 @@ namespace networktest
 		* @param dwTime - время тестирования в милисекундах.
 		* @return - результата работы.
 		*/
-		DATATRANSFER std::error_code start(
+		std::error_code start(
 			SStatistic& statistic,
 			const DWORD dwTime = INFINITE);
 	//==========================================================================
 		/**
 		* закончить работу и дождаться всех операций.
+		* @param bIsWait - признак ожидания.
 		*/
-		DATATRANSFER void release() noexcept override;
+		void release(
+			const bool bIsWait) noexcept override;
 	//==========================================================================
 		/**
 		* деструктор тестирования сети.
 		*/
-		DATATRANSFER ~CNetworkTest();
+		~CNetworkTest();
 	//==========================================================================
 		CNetworkTest(const CNetworkTest&) = delete;
 		CNetworkTest(CNetworkTest&&) = delete;
@@ -138,7 +140,7 @@ namespace networktest
 		* @param dwReconnect - количество переподключений.
 		* @param ec - ошибка подключения.
 		*/
-		DATATRANSFER virtual void connectedClientHandler(
+		virtual void connectedClientHandler(
 			INetworkTestStatistic* const pClient,
 			const DWORD dwReconnect,
 			const std::error_code ec) noexcept;
@@ -147,7 +149,7 @@ namespace networktest
 		* виртуальное уведомление об тике сбора статистики.
 		* @param statisticClients - статистика.
 		*/
-		DATATRANSFER virtual void statisticHandler(
+		virtual void statisticHandler(
 			const std::unordered_map<INetworkTestStatistic*, SStatisticClient>& statisticClients) noexcept;
 	//==========================================================================
 		/**
@@ -156,7 +158,7 @@ namespace networktest
 		* @param dwReconnect - количество переподключений.
 		* @param ec - ошибка отключения.
 		*/
-		DATATRANSFER virtual void disconnectedClientHandler(
+		virtual void disconnectedClientHandler(
 			INetworkTestStatistic* const pClient,
 			const DWORD dwReconnect,
 			const std::error_code ec) noexcept;
@@ -172,7 +174,7 @@ namespace networktest
 		* @param dwReconnect - количество переподключений.
 		* @param ec - ошибка подключения.
 		*/
-		DATATRANSFER void connectedClient(
+		void connectedClient(
 			INetworkTestStatistic* const pClient,
 			const DWORD dwReconnect,
 			const std::error_code ec = std::error_code()) noexcept;
@@ -183,7 +185,7 @@ namespace networktest
 		* @param dwReconnect - количество переподключений.
 		* @param ec - ошибка отключения.
 		*/
-		DATATRANSFER void disconnectedClient(
+		void disconnectedClient(
 			INetworkTestStatistic* const pClient,
 			const DWORD dwReconnect,
 			const std::error_code ec = std::error_code()) noexcept;
@@ -191,7 +193,7 @@ namespace networktest
 		/**
 		* обновление статистики.
 		*/
-		DATATRANSFER void threadUpdate() noexcept;
+		void threadUpdate() noexcept;
 	//==========================================================================
 	#pragma endregion
 
