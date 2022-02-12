@@ -287,6 +287,12 @@ std::error_code CTransferControl::ITransferTcpCommunication<T>::operationFile(
 			/** кривая отправка */
 			return std::error_code(ERROR_INVALID_DATA, std::system_category());
 		}
+		if (pTransferFile->_ec)
+		{
+			/** сваливаем */
+			_pClient->disconnect(pTransferFile->_ec);
+			return pTransferFile->_ec;
+		}
 		ec = _pClient->startRecv(
 			(PBYTE)&dwError,
 			sizeof(dwError),
