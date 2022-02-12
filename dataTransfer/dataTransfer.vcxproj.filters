@@ -18,10 +18,61 @@
     <ClInclude Include="networktest\INetworkTestStatistic.h">
       <Filter>networktest</Filter>
     </ClInclude>
+    <ClInclude Include="filetransfer\CTransferControl.h">
+      <Filter>filetransfer</Filter>
+    </ClInclude>
+    <ClInclude Include="filetransfer\CTransferRequest.h">
+      <Filter>filetransfer</Filter>
+    </ClInclude>
+    <ClInclude Include="filetransfer\ITransferMember.h">
+      <Filter>filetransfer</Filter>
+    </ClInclude>
+    <ClInclude Include="filetransfer\CTransferRequestInfo.h">
+      <Filter>filetransfer</Filter>
+    </ClInclude>
+    <ClInclude Include="filetransfer\CTransferFile.h">
+      <Filter>filetransfer</Filter>
+    </ClInclude>
+    <ClInclude Include="filetransfer\CTransferFileBuffer.h">
+      <Filter>filetransfer</Filter>
+    </ClInclude>
+    <ClInclude Include="filetransfer\CTransferDirectory.h">
+      <Filter>filetransfer\directory</Filter>
+    </ClInclude>
+    <ClInclude Include="filetransfer\CTransferDirectoryFile.h">
+      <Filter>filetransfer\directory</Filter>
+    </ClInclude>
+    <ClInclude Include="filetransfer\CTransferTcpClient.h">
+      <Filter>filetransfer\network</Filter>
+    </ClInclude>
+    <ClInclude Include="filetransfer\ITransferTcpCommunication.h">
+      <Filter>filetransfer\network</Filter>
+    </ClInclude>
+    <ClInclude Include="filetransfer\CTransferTcpServer.h">
+      <Filter>filetransfer\network</Filter>
+    </ClInclude>
+    <ClInclude Include="filetransfer\CClient.h">
+      <Filter>filetransfer\network</Filter>
+    </ClInclude>
+    <ClInclude Include="filetransfer\CTcpServerFromMember.h">
+      <Filter>filetransfer\network</Filter>
+    </ClInclude>
+    <ClInclude Include="filetransfer\CClientFromServer.h">
+      <Filter>filetransfer\network</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="networktest">
       <UniqueIdentifier>{8066b9d7-0228-429c-a796-286999ea9a07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filetransfer">
+      <UniqueIdentifier>{d090db83-f5c9-4969-b3ba-e19e270bfefa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filetransfer\directory">
+      <UniqueIdentifier>{84df46a6-9372-41b3-b09e-696d887e6c67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filetransfer\network">
+      <UniqueIdentifier>{b16c6b86-c894-4894-8493-f90cc6449fc3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -36,6 +87,48 @@
     </ClCompile>
     <ClCompile Include="networktest\CNetworkTest.cpp">
       <Filter>networktest</Filter>
+    </ClCompile>
+    <ClCompile Include="filetransfer\CTransferControl.cpp">
+      <Filter>filetransfer</Filter>
+    </ClCompile>
+    <ClCompile Include="filetransfer\ITransferMember.cpp">
+      <Filter>filetransfer</Filter>
+    </ClCompile>
+    <ClCompile Include="filetransfer\CTransferRequestInfo.cpp">
+      <Filter>filetransfer</Filter>
+    </ClCompile>
+    <ClCompile Include="filetransfer\CTransferRequest.cpp">
+      <Filter>filetransfer</Filter>
+    </ClCompile>
+    <ClCompile Include="filetransfer\CTransferFile.cpp">
+      <Filter>filetransfer</Filter>
+    </ClCompile>
+    <ClCompile Include="filetransfer\CTransferFileBuffer.cpp">
+      <Filter>filetransfer</Filter>
+    </ClCompile>
+    <ClCompile Include="filetransfer\CTransferDirectory.cpp">
+      <Filter>filetransfer\directory</Filter>
+    </ClCompile>
+    <ClCompile Include="filetransfer\CTransferDirectoryFile.cpp">
+      <Filter>filetransfer\directory</Filter>
+    </ClCompile>
+    <ClCompile Include="filetransfer\CTransferTcpClient.cpp">
+      <Filter>filetransfer\network</Filter>
+    </ClCompile>
+    <ClCompile Include="filetransfer\CTransferTcpServer.cpp">
+      <Filter>filetransfer\network</Filter>
+    </ClCompile>
+    <ClCompile Include="filetransfer\CClient.cpp">
+      <Filter>filetransfer\network</Filter>
+    </ClCompile>
+    <ClCompile Include="filetransfer\CTcpServerFromMember.cpp">
+      <Filter>filetransfer\network</Filter>
+    </ClCompile>
+    <ClCompile Include="filetransfer\CClientFromServer.cpp">
+      <Filter>filetransfer\network</Filter>
+    </ClCompile>
+    <ClCompile Include="filetransfer\ITransferTcpCommunication.cpp">
+      <Filter>filetransfer\network</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

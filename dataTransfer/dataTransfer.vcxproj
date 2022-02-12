@@ -302,6 +302,20 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="dataTransfer.h" />
+    <ClInclude Include="filetransfer\CClient.h" />
+    <ClInclude Include="filetransfer\CClientFromServer.h" />
+    <ClInclude Include="filetransfer\CTcpServerFromMember.h" />
+    <ClInclude Include="filetransfer\CTransferControl.h" />
+    <ClInclude Include="filetransfer\CTransferDirectory.h" />
+    <ClInclude Include="filetransfer\CTransferDirectoryFile.h" />
+    <ClInclude Include="filetransfer\CTransferFile.h" />
+    <ClInclude Include="filetransfer\CTransferFileBuffer.h" />
+    <ClInclude Include="filetransfer\CTransferRequest.h" />
+    <ClInclude Include="filetransfer\CTransferRequestInfo.h" />
+    <ClInclude Include="filetransfer\CTransferTcpClient.h" />
+    <ClInclude Include="filetransfer\CTransferTcpServer.h" />
+    <ClInclude Include="filetransfer\ITransferTcpCommunication.h" />
+    <ClInclude Include="filetransfer\ITransferMember.h" />
     <ClInclude Include="networktest\CNetworkTest.h" />
     <ClInclude Include="networktest\CTcpClientNetworkTest.h" />
     <ClInclude Include="networktest\CTcpConnectedClientNetworkTest.h" />
@@ -310,6 +324,20 @@
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="filetransfer\CClient.cpp" />
+    <ClCompile Include="filetransfer\CClientFromServer.cpp" />
+    <ClCompile Include="filetransfer\CTcpServerFromMember.cpp" />
+    <ClCompile Include="filetransfer\CTransferControl.cpp" />
+    <ClCompile Include="filetransfer\CTransferDirectory.cpp" />
+    <ClCompile Include="filetransfer\CTransferDirectoryFile.cpp" />
+    <ClCompile Include="filetransfer\CTransferFile.cpp" />
+    <ClCompile Include="filetransfer\CTransferFileBuffer.cpp" />
+    <ClCompile Include="filetransfer\CTransferRequest.cpp" />
+    <ClCompile Include="filetransfer\CTransferRequestInfo.cpp" />
+    <ClCompile Include="filetransfer\CTransferTcpClient.cpp" />
+    <ClCompile Include="filetransfer\CTransferTcpServer.cpp" />
+    <ClCompile Include="filetransfer\ITransferMember.cpp" />
+    <ClCompile Include="filetransfer\ITransferTcpCommunication.cpp" />
     <ClCompile Include="networktest\CNetworkTest.cpp" />
     <ClCompile Include="networktest\CTcpClientNetworkTest.cpp" />
     <ClCompile Include="networktest\CTcpConnectedClientNetworkTest.cpp" />
