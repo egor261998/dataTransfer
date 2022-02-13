@@ -240,8 +240,8 @@ std::error_code CTransferControl::ITransferTcpCommunication<T>::startAsyncRead(
 		throw std::invalid_argument("pFileBufferRead == nullptr");
 
 	const auto ec = _pClient->startAsyncRecv(
-		&pFileBufferRead->_buffer.data[0],
-		pFileBufferRead->_buffer.dwSize,
+		(PBYTE)&pFileBufferRead->_buffer.dwError,
+		pFileBufferRead->_buffer.dwSize + sizeof(pFileBufferRead->_buffer.dwError),
 		MSG_WAITALL);
 
 	return ec;
@@ -255,8 +255,8 @@ std::error_code CTransferControl::ITransferTcpCommunication<T>::startAsyncWrite(
 		throw std::invalid_argument("pFileBufferRead == nullptr");
 
 	const auto ec = _pClient->startAsyncSend(
-		&pFileBufferWrite->_buffer.data[0],
-		pFileBufferWrite->_buffer.dwSize);
+		(PBYTE)&pFileBufferWrite->_buffer.dwError,
+		pFileBufferWrite->_buffer.dwSize + sizeof(pFileBufferWrite->_buffer.dwError));
 
 	return ec;
 }
@@ -289,8 +289,24 @@ std::error_code CTransferControl::ITransferTcpCommunication<T>::operationFile(
 		}
 		if (pTransferFile->_ec)
 		{
-			/** сваливаем */
-			_pClient->disconnect(pTransferFile->_ec);
+			/** какой-то буфер сейчас может висеть в ожидании приема, 
+				нужно сбросить нулевой */
+			std::vector<BYTE> nullBuffer(sizeof(CTransferFileBuffer::SBufferInfo::data));
+			ec = _pClient->startSend(
+				nullBuffer.data(),
+				sizeof(CTransferFileBuffer::SBufferInfo::data),
+				&dwReturnedByte);
+			if (ec)
+			{
+				/** не удалось отправить */
+				return ec;
+			}
+			if (dwReturnedByte != sizeof(CTransferFileBuffer::SBufferInfo::data))
+			{
+				/** кривая отправка */
+				return std::error_code(ERROR_INVALID_DATA, std::system_category());
+			}
+
 			return pTransferFile->_ec;
 		}
 		ec = _pClient->startRecv(
@@ -334,14 +350,20 @@ void CTransferControl::ITransferTcpCommunication<T>::asyncRecvComplitionHandler(
 
 	assert(bufferRecv != nullptr);
 	const auto pBufferInfo =
-		CONTAINING_RECORD(bufferRecv, CTransferFileBuffer::SBufferInfo, data);
+		CONTAINING_RECORD(bufferRecv, CTransferFileBuffer::SBufferInfo, dwError);
 
 	assert(pBufferInfo != nullptr);
 	const auto pFileBufferRecv =
 		CONTAINING_RECORD(pBufferInfo, CTransferFileBuffer, _buffer);
 
+	const auto ecRecv = std::error_code(pBufferInfo->dwError, std::system_category());
 	assert(pFileBufferRecv != nullptr);
-	pFileBufferRecv->_pTransferFile->asyncReadComplitionHandler(pFileBufferRecv, ec);
+	pFileBufferRecv->_pTransferFile->asyncReadComplitionHandler(
+		pFileBufferRecv, ec ? ec : ecRecv);
+	if (ecRecv)
+	{
+		_pClient->disconnect();
+	}
 }
 //==============================================================================
 template<class T>
@@ -354,13 +376,19 @@ void CTransferControl::ITransferTcpCommunication<T>::asyncSendComplitionHandler(
 
 	assert(bufferSend != nullptr);
 	const auto pBufferInfo =
-		CONTAINING_RECORD(bufferSend, CTransferFileBuffer::SBufferInfo, data);
+		CONTAINING_RECORD(bufferSend, CTransferFileBuffer::SBufferInfo, dwError);
 
 	assert(pBufferInfo != nullptr);
 	const auto pFileBufferSend =
 		CONTAINING_RECORD(pBufferInfo, CTransferFileBuffer, _buffer);
 
+	const auto ecSend = std::error_code(pBufferInfo->dwError, std::system_category());
 	assert(pFileBufferSend != nullptr);
-	pFileBufferSend->_pTransferFile->asyncWriteComplitionHandler(pFileBufferSend, ec);
+	pFileBufferSend->_pTransferFile->asyncWriteComplitionHandler(
+		pFileBufferSend, ec ? ec : ecSend);
+	if (ecSend)
+	{
+		_pClient->disconnect();
+	}
 }
 //==============================================================================

@@ -16,6 +16,8 @@ namespace filetransfer
 			UINT64 offset;
 			/** размер буфера */
 			DWORD dwSize;
+			/** ошибка передачи для протоколов передачи */
+			DWORD dwError;
 			/** буфер передачи */
 			BYTE data[BUFFER_64K];
 		}SBufferInfo, * PSBufferInfo;
