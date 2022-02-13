@@ -225,6 +225,24 @@ std::error_code CTransferControl::request(
 	}
 }
 //==============================================================================
+void CTransferControl::progressRequestHandler(
+	const EProgressRequest eProgressRequest,
+	const CTransferRequest& transferRequest) noexcept
+{
+	UNREFERENCED_PARAMETER(eProgressRequest);
+	UNREFERENCED_PARAMETER(transferRequest);
+}
+//==============================================================================
+void CTransferControl::progressTransferFileHandler(
+	const EProgressTransferFileHandler eProgressTransferFileHandler,
+	const CTransferRequest& transferRequest,
+	const CTransferFile& transferFile) noexcept
+{
+	UNREFERENCED_PARAMETER(eProgressTransferFileHandler);
+	UNREFERENCED_PARAMETER(transferRequest);
+	UNREFERENCED_PARAMETER(transferFile);
+}
+//==============================================================================
 void CTransferControl::release(
 	const bool bIsWait) noexcept
 {

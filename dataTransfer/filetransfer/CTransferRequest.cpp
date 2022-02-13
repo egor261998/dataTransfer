@@ -33,6 +33,9 @@ CTransferControl::CTransferRequest::CTransferRequest(
 	/** оставляем ссылки */
 	counterMemberIn.release();
 	counterMemberOut.release();
+
+	/** прогресс создания запроса */
+	_pTransferControl->progressRequestHandler(EProgressRequest::eCreate, *this);
 }
 //==============================================================================
 std::error_code CTransferControl::CTransferRequest::request()
@@ -85,6 +88,9 @@ std::error_code CTransferControl::CTransferRequest::request()
 	CTransferRequestInfo requestInfoIn(this, _pMemberIn);
 	CTransferRequestInfo requestInfoOut(this, _pMemberOut);
 
+	/** прогресс начала запроса к участникам */
+	_pTransferControl->progressRequestHandler(EProgressRequest::eStartRequest, *this);
+
 	try
 	{
 		/** начинаем работу с участниками передачи */
@@ -113,11 +119,17 @@ std::error_code CTransferControl::CTransferRequest::request()
 		resultIn.wait();
 		resultOut.wait();
 
+		/** прогресс окончания запроса к участникам */
+		_pTransferControl->progressRequestHandler(EProgressRequest::eEndRequest, *this);
+
 		/** проверка успеха запросов */
 		if (const auto ec = resultIn.get(); ec)
 			return ec;
 		if (const auto ec = resultOut.get(); ec)
 			return ec;
+
+		/** прогресс начала передачи файлов */
+		_pTransferControl->progressRequestHandler(EProgressRequest::eStartTransfer, *this);
 
 		for (const auto& itIn : requestInfoIn._files)
 		{
@@ -130,12 +142,21 @@ std::error_code CTransferControl::CTransferRequest::request()
 					return std::error_code(ERROR_ACCESS_DENIED, std::system_category());
 				}
 			}
+			
+			_files.push_back(itIn);
+		}
 
+		/** передаем файлы */
+		for (const auto& it : _files)
+		{
 			/** передача файла */
-			const auto ec = transferFile(itIn);
+			const auto ec = transferFile(it);
 			if (ec)
 				return ec;
 		}
+		
+		/** прогресс окончания передачи файлов */
+		_pTransferControl->progressRequestHandler(EProgressRequest::eEndTransfer, *this);
 
 		/** закрываем участников передачи для запроса
 			и фиксируем ошибку */
@@ -193,5 +214,8 @@ CTransferControl::CTransferRequest::~CTransferRequest()
 	/** снимаем ссылки с объектов */
 	_pMemberIn->endOperation();
 	_pMemberOut->endOperation();
+
+	/** прогресс удаления запроса */
+	_pTransferControl->progressRequestHandler(EProgressRequest::eDelete, *this);
 }
 //==============================================================================

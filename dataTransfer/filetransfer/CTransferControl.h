@@ -27,6 +27,39 @@ namespace filetransfer
 		/** объект передачи файла */
 		class CTransferFile;
 		class CTransferFileBuffer;
+
+	//==========================================================================
+		/** прогресс запроса */
+		enum class EProgressRequest
+		{
+			/** новый запрос */
+			eCreate,
+			/** начало выполнения запроса к участникам */
+			eStartRequest,
+			/** завершения запроса к участникам */
+			eEndRequest,
+			/** начало передачи файлов */
+			eStartTransfer,
+			/** окончания передачи файлов */
+			eEndTransfer,
+			/** удаление запроса */
+			eDelete
+		};
+	//==========================================================================
+		/** прогресс передачи файла */
+		enum class EProgressTransferFileHandler
+		{
+			/** новый файл */
+			eCreate,
+			/** начало выполнения передачи файла */
+			eStartTransfer,
+			/** прогресс передачи*/
+			eProgress,
+			/** окончание выполнения передачи файла */
+			eEndTransfer,
+			/** конец файла */
+			eDelete,
+		};
 	//==========================================================================
 	#pragma endregion
 
@@ -150,6 +183,26 @@ namespace filetransfer
 			const ERequest eRequest,
 			const std::filesystem::path requestPath,
 			ITransferMember* const pMember);
+	//==========================================================================
+		/**
+		* прогресс запроса.
+		* @param eProgressRequest - тип прогресса.
+		* @param transferRequest - запрос на передачу.
+		*/
+		virtual void progressRequestHandler(
+			const EProgressRequest eProgressRequest,
+			const CTransferRequest& transferRequest) noexcept;
+	//==========================================================================
+		/**
+		* прогресс передачи файла для запроса.
+		* @param eProgressTransferFileHandler - тип прогресса.
+		* @param transferRequest - запрос на передачу.
+		* @param transferFile - передаваемый файл.
+		*/
+		virtual void progressTransferFileHandler(
+			const EProgressTransferFileHandler eProgressTransferFileHandler,
+			const CTransferRequest& transferRequest,
+			const CTransferFile& transferFile) noexcept;
 	//==========================================================================
 	#pragma endregion
 

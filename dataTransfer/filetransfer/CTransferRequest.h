@@ -74,6 +74,9 @@ namespace filetransfer
 		/** получатель файлов */
 		ITransferMember* const _pMemberOut;
 
+		/** список файлов */
+		std::vector<CTransferRequestInfo::SFileInfo> _files;
+
 		/** запрос для источника */
 		const ERequest _eRequest;
 		/** относительный путь запроса */

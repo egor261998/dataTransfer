@@ -22,6 +22,12 @@ CTransferControl::CTransferFile::CTransferFile(
 
 	/** оставляем ссылки */
 	counter.release();
+
+	/** прогресс нового файла */
+	_pTransferRequest->_pTransferControl->progressTransferFileHandler(
+		EProgressTransferFileHandler::eCreate,
+		*_pTransferRequest,
+		*this);
 }
 //==============================================================================
 std::error_code CTransferControl::CTransferFile::request()
@@ -29,6 +35,12 @@ std::error_code CTransferControl::CTransferFile::request()
 	wname::misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
 		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
+
+	/** прогресс начала передачи */
+	_pTransferRequest->_pTransferControl->progressTransferFileHandler(
+		EProgressTransferFileHandler::eStartTransfer,
+		*_pTransferRequest,
+		*this);
 
 	try
 	{
@@ -50,6 +62,12 @@ std::error_code CTransferControl::CTransferFile::request()
 
 		/** ожидаем завершения передачи */
 		_evEndTransfer.wait();
+
+		/** прогресс окончания передачи */
+		_pTransferRequest->_pTransferControl->progressTransferFileHandler(
+			EProgressTransferFileHandler::eEndTransfer,
+			*_pTransferRequest,
+			*this);
 
 		/** закрываем файл передачи	и фиксируем ошибку */
 		const auto ecCloseIn = _pTransferRequest->_pMemberIn->closeFile(this);
@@ -110,6 +128,12 @@ void CTransferControl::CTransferFile::fileIo()
 			endTransfer(ec);
 			return;
 		}
+
+		/** прогресс передачи */
+		_pTransferRequest->_pTransferControl->progressTransferFileHandler(
+			EProgressTransferFileHandler::eProgress,
+			*_pTransferRequest,
+			*this);
 
 		if (_uWriteSize == _fileInfo.uSize && _uReadSize == _fileInfo.uSize)
 		{
@@ -418,5 +442,11 @@ CTransferControl::CTransferFile::~CTransferFile()
 
 	/** снимаем ссылки с объекта */
 	_pTransferRequest->endOperation();
+
+	/** прогресс конца файла */
+	_pTransferRequest->_pTransferControl->progressTransferFileHandler(
+		EProgressTransferFileHandler::eDelete,
+		*_pTransferRequest,
+		*this);
 }
 //==============================================================================
