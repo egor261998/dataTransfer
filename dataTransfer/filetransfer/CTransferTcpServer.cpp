@@ -104,9 +104,14 @@ std::error_code CTransferControl::CTransferTcpServer::openFile(
 
 	try
 	{
-		wname::cs::CCriticalSectionScoped lock(_csCounter);
+		CClientFromServer* pClient;
+		{
+			wname::cs::CCriticalSectionScoped lock(_csCounter);
+			pClient = _transferActive.at(pTransferFile->_pTransferRequest);
+			assert(pClient != nullptr);
+		}
 
-		return _transferActive.at(pTransferFile->_pTransferRequest)->operationFile(pTransferFile);
+		return pClient->operationFile(pTransferFile);
 	}
 	catch (const std::exception& ex)
 	{
@@ -124,9 +129,14 @@ std::error_code CTransferControl::CTransferTcpServer::createFile(
 
 	try
 	{
-		wname::cs::CCriticalSectionScoped lock(_csCounter);
+		CClientFromServer* pClient;
+		{
+			wname::cs::CCriticalSectionScoped lock(_csCounter);
+			pClient = _transferActive.at(pTransferFile->_pTransferRequest);
+			assert(pClient != nullptr);
+		}
 
-		return _transferActive.at(pTransferFile->_pTransferRequest)->operationFile(pTransferFile);
+		return pClient->operationFile(pTransferFile);
 	}
 	catch (const std::exception& ex)
 	{
@@ -186,9 +196,14 @@ std::error_code CTransferControl::CTransferTcpServer::closeFile(
 
 	try
 	{
-		wname::cs::CCriticalSectionScoped lock(_csCounter);
+		CClientFromServer* pClient;
+		{
+			wname::cs::CCriticalSectionScoped lock(_csCounter);
+			pClient = _transferActive.at(pTransferFile->_pTransferRequest);
+			assert(pClient != nullptr);
+		}
 
-		return _transferActive.at(pTransferFile->_pTransferRequest)->operationFile(pTransferFile);
+		return pClient->operationFile(pTransferFile);
 	}
 	catch (const std::exception& ex)
 	{

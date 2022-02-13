@@ -120,9 +120,13 @@ std::error_code CTransferControl::CTransferTcpClient::openFile(
 
 	try
 	{
-		wname::cs::CCriticalSectionScoped lock(_csCounter);
+		std::shared_ptr<CClient> pClient;
+		{
+			wname::cs::CCriticalSectionScoped lock(_csCounter);
+			pClient = _transferActive.at(pTransferFile->_pTransferRequest);
+		}
 
-		return _transferActive.at(pTransferFile->_pTransferRequest)->operationFile(pTransferFile);
+		return pClient->operationFile(pTransferFile);
 	}
 	catch (const std::exception& ex)
 	{
@@ -140,9 +144,13 @@ std::error_code CTransferControl::CTransferTcpClient::createFile(
 
 	try
 	{
-		wname::cs::CCriticalSectionScoped lock(_csCounter);
+		std::shared_ptr<CClient> pClient;
+		{
+			wname::cs::CCriticalSectionScoped lock(_csCounter);
+			pClient = _transferActive.at(pTransferFile->_pTransferRequest);
+		}
 
-		return _transferActive.at(pTransferFile->_pTransferRequest)->operationFile(pTransferFile);
+		return pClient->operationFile(pTransferFile);
 	}
 	catch (const std::exception& ex)
 	{
@@ -202,9 +210,13 @@ std::error_code CTransferControl::CTransferTcpClient::closeFile(
 
 	try
 	{
-		wname::cs::CCriticalSectionScoped lock(_csCounter);
+		std::shared_ptr<CClient> pClient;
+		{
+			wname::cs::CCriticalSectionScoped lock(_csCounter);
+			pClient = _transferActive.at(pTransferFile->_pTransferRequest);
+		}
 
-		return _transferActive.at(pTransferFile->_pTransferRequest)->operationFile(pTransferFile);
+		return pClient->operationFile(pTransferFile);
 	}
 	catch (const std::exception& ex)
 	{
@@ -231,6 +243,13 @@ std::error_code CTransferControl::CTransferTcpClient::closeMember(
 void CTransferControl::CTransferTcpClient::release(
 	const bool bIsWait) noexcept
 {
+	__super::release(false);
+	std::unordered_map<CTransferRequest*, std::shared_ptr<CClient>> transferActive;
+	{	
+		wname::cs::CCriticalSectionScoped lock(_csCounter);
+		transferActive = std::move(_transferActive);
+	}
+	transferActive.clear();
 	__super::release(bIsWait);
 }
 //==============================================================================

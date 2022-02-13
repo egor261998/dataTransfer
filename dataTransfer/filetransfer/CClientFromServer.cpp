@@ -11,13 +11,11 @@ CTransferControl::CTransferTcpServer::CClientFromServer::CClientFromServer(
 
 }
 //==============================================================================
-void CTransferControl::CTransferTcpServer::CClientFromServer::clientConnected(
-	const std::error_code ec) noexcept
+void CTransferControl::CTransferTcpServer::CClientFromServer::workerRequest() noexcept
 {
-	if (ec)
-	{
+	wname::misc::CCounterScoped counter(*this);
+	if (!counter.isStartOperation())
 		return;
-	}
 
 	auto pTcpServer = dynamic_cast<CTcpServerFromMember*>(_pParent);
 	assert(pTcpServer != nullptr);
@@ -26,7 +24,7 @@ void CTransferControl::CTransferTcpServer::CClientFromServer::clientConnected(
 	try
 	{
 		ERequest eRequest = ERequest::eNone;
-		
+
 		auto recvEc = recvRequestPath(
 			eRequest, requestPath);
 		if (recvEc)
@@ -34,10 +32,9 @@ void CTransferControl::CTransferTcpServer::CClientFromServer::clientConnected(
 			return;
 		}
 
-		
 		{
 			wname::cs::CCriticalSectionScoped lock(pTcpServer->_pTransferTcpServer->_csCounter);
-			auto &transferFree = pTcpServer->_pTransferTcpServer->_transferFree;
+			auto& transferFree = pTcpServer->_pTransferTcpServer->_transferFree;
 			if (transferFree.find(requestPath) == transferFree.end())
 			{
 				transferFree[requestPath] = std::list<CClientFromServer*>();
@@ -46,14 +43,14 @@ void CTransferControl::CTransferTcpServer::CClientFromServer::clientConnected(
 
 			transferFree.at(requestPath).push_back(this);
 		}
-		
+
 		recvEc = pTcpServer->_pTransferTcpServer->_pTransferControl->request(
 			eRequest, requestPath, pTcpServer->_pTransferTcpServer);
 	}
 	catch (const std::exception& ex)
 	{
 		_pIocp->log(wname::logger::EMessageType::critical, ex);
-	}	
+	}
 
 	try
 	{
@@ -80,6 +77,28 @@ void CTransferControl::CTransferTcpServer::CClientFromServer::clientConnected(
 	{
 		_pIocp->log(wname::logger::EMessageType::critical, ex);
 	}
+
+	disconnect();
+}
+//==============================================================================
+void CTransferControl::CTransferTcpServer::CClientFromServer::clientConnected(
+	const std::error_code ec) noexcept
+{
+	if (ec)
+	{
+		return;
+	}
+
+	try
+	{
+		auto th = std::thread(&CClientFromServer::workerRequest, this);
+		th.detach();
+	}
+	catch (const std::exception& ex)
+	{
+		_pIocp->log(wname::logger::EMessageType::critical, ex);
+		disconnect();
+	}	
 }
 //==============================================================================
 void CTransferControl::CTransferTcpServer::CClientFromServer::clientAsyncRecvComplitionHandler(

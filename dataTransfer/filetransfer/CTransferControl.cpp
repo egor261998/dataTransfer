@@ -259,10 +259,11 @@ void CTransferControl::release(
 		recipients = std::move(_recipients);
 		requests = std::move(_requests);
 	}
-	requests.clear();
-	source.reset();
-	recipients.clear();
 
+	requests.clear();
+	recipients.clear();
+	source.reset();
+	
 	if (bIsWait)
 	{
 		__super::release(bIsWait);

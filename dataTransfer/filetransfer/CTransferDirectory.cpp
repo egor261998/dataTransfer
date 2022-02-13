@@ -298,6 +298,13 @@ std::error_code CTransferControl::CTransferDirectory::closeMember(
 void CTransferControl::CTransferDirectory::release(
 	const bool bIsWait) noexcept
 {
+	__super::release(false);
+	std::unordered_map<CTransferRequest*, FileList> transferActive;
+	{
+		wname::cs::CCriticalSectionScoped lock(_csCounter);
+		transferActive = std::move(_transferActive);
+	}
+	transferActive.clear();
 	__super::release(bIsWait);
 }
 //==============================================================================
